@@ -1,0 +1,1615 @@
+---
+title: "Dados PMQC - Julho 2016"
+author: ""
+date: ""
+output: pdf_document
+classoption: a4paper
+---
+
+```{r data.loading.2,cache=TRUE,echo=FALSE,warning=FALSE}
+library(data.table)
+mypath.1 <- "/Volumes/NO NAME/ExplAnalysis_PMQC/Dados.PMQC.16.07.pmqc.dt.csv"
+mypath.2 <- "/Volumes/NO NAME/ExplAnalysis_PMQC/Dados.PMQC.16.07.pmqc.un.dt.csv"
+pmqc.dt <- fread(mypath.1,header=T,check.names=T) # na.strings="NA"
+pmqc.un.dt <- fread(mypath.2,header=T,check.names=T) # na.strings="NA"
+```
+
+
+**Separador decimal: ponto**
+
+# Quantitativos
+
+```{r counts,cache=TRUE,warning=FALSE,echo=FALSE}
+##################################################
+####                  Counts                  ####
+##################################################
+
+# Total number of unique Id.numeric
+pmqc.dt[!duplicated(Id.numeric),.(Total.Amostras=.N),]
+# Total number of unique Id.numeric by Contratada
+pmqc.dt[!duplicated(Id.numeric),.(Total.Amostras=.N),keyby=.(Contratada)]
+# Total number of unique Id.numeric by Produto
+pmqc.dt[!duplicated(Id.numeric),.(Total.Amostras=.N),keyby=.(Produto)]
+pmqc.dt[!duplicated(Id.numeric),.(Total.Amostras=.N),keyby=.(Grupo.produto)]
+# Total number of unique Id.numeric by Contratada, Produto
+# pmqc.dt[!duplicated(Id.numeric),.(Total.Amostras=.N),keyby=.(Contratada,Produto)]
+pmqc.dt[!duplicated(Id.numeric),.(Total.Amostras=.N),
+        keyby=.(Contratada,Grupo.produto)]
+
+
+# Total number of Ensaios
+pmqc.dt[!duplicated(pmqc.dt[,.(Id.numeric,Ensaio.)])
+        ][,.(Total.Amostras=.N),keyby=.(Ensaio.)]
+
+# Total number of Ensaios by Contratada
+# pmqc.dt[!duplicated(pmqc.dt[,.(Id.numeric,Ensaio.)])][,.(Total.Amostras=.N),keyby=.(Contratada,Ensaio.)]
+
+# Total number of unique Componentes
+# pmqc.dt[!duplicated(pmqc.dt)][,.N]
+# Total number of unique Componentes by Contratada
+# pmqc.dt[!duplicated(pmqc.dt)][,.N,keyby=.(Contratada)]
+# Total number of unique Componentes by Produto
+# pmqc.dt[!duplicated(pmqc.dt)][,.N,keyby=.(Produto)]
+# Total number of unique Componentes by Contratada, Produto
+# pmqc.dt[!duplicated(pmqc.dt)][,.N,keyby=.(Contratada,Produto)]
+```
+
+## Amostras não conformes
+
+```{r amostras.nao.conformes,cache=TRUE,echo=FALSE,warning=FALSE}
+# Amostras nao conformes
+print(pmqc.dt[!duplicated(pmqc.dt[,.(Id.numeric,Nao.conforme)])
+        ][Nao.conforme=="Sim",.(Id.text,Produto),keyby=.(Contratada)
+          ][,.(Id.text,Produto)],nrow=500)
+# pmqc.dt[!duplicated(pmqc.dt[,.(Id.numeric,Nao.conforme)])][Nao.conforme=="Sim",
+#                                                            .N]
+
+# Percent amostras nao conformes
+tmp832<-(pmqc.dt[!duplicated(pmqc.dt[,.(Id.numeric,Nao.conforme)])
+                 ][Nao.conforme=="Sim",.N]/pmqc.dt[!duplicated(Id.numeric),.N,])*100
+
+```
+
+**Percentual de amostras não conformes: `r round(tmp832,2)`%:**
+
+## Componentes não conformes
+
+### Gasolina
+
+```{r ncgas,cache=TRUE,echo=FALSE,warning=FALSE}
+tblncgas <- prop.table(table(pmqc.un.dt[Grupo.produto=="Gasolina",
+                            Nao.conforme,keyby=Componente]),margin=1)
+
+round(tblncgas,3)
+
+```
+
+### Total de componentes não conformes
+
+```{r nao.conformes,cache=TRUE,echo=FALSE,warning=FALSE}
+# Componentes nao conformes
+
+comp.nc.dt <- pmqc.un.dt[!duplicated(pmqc.un.dt[,.(Id.numeric,Componente)])][Nao.conforme=="Sim",.(Id.text,Produto,Id.numeric,Id.text),keyby=.(Componente,Contratada,Resultado)][,.(Componente,Resultado,Id.text,Produto)]
+
+comp.nc.dt[Produto %in% c("OLEO DIESEL B S500 COMUM",
+                          "OLEO DIESEL B S500 ADITIVADO"),
+           Produto:="ODB500"]
+comp.nc.dt[Produto %in% c("OLEO DIESEL B S10 COMUM",
+                          "OLEO DIESEL B S10 ADITIVADO"),
+           Produto:="ODB10"]
+comp.nc.dt[Produto %in% c("ETANOL HIDRATADO COMUM",
+                          "ETANOL HIDRATADO ADITIVADO"),
+           Produto:="EH"]
+comp.nc.dt[Produto %in% c("GASOLINA C ADITIVADA","GASOLINA C COMUM"),
+           Produto:="GCC-GCA"]
+comp.nc.dt[Produto=="GASOLINA C PREMIUM",
+           Produto:="GCP"]
+
+print(comp.nc.dt[,.(Componente,Resultado,Id.text,Produto)],nrow=500)
+
+# pmqc.dt[!duplicated(pmqc.dt[,.(Id.numeric,Componente)])][Nao.conforme=="Sim",.(Total.Componentes.Nao.Conformes=.N)]
+
+# Componentes nao conformes by Contratada
+# pmqc.dt[!duplicated(pmqc.dt[,.(Id.numeric,Componente)])][Nao.conforme=="Sim",
+#                                                          .N,keyby=.(Contratada)]
+# Componentes nao conformes by Produto
+# pmqc.dt[!duplicated(pmqc.dt[,.(Id.numeric,Componente)])][Nao.conforme=="Sim",
+#                                                          .N,keyby=.(Produto)]
+
+# Total number of missing values for Resultado
+# pmqc.dt[is.na(pmqc.dt[,Resultado]),.N]
+# Componentes with missing values for Resultado
+# pmqc.dt[is.na(pmqc.dt[,Resultado]),]
+```
+
+\newpage
+
+# Características
+
+## Aspecto
+
+```{r aspecto,echo=FALSE,cache=TRUE,warning=FALSE}
+# cmps <- pmqc.dt[,unique(Componente)]
+# cmps
+# pmqc.dt[,unique(Ensaio.)]
+
+table(pmqc.un.dt[Componente=="Aspecto",Resultado,keyby=Produto])
+```
+
+
+## Cor
+
+```{r cor,echo=FALSE,cache=TRUE,warning=FALSE}
+table(pmqc.un.dt[Componente=="Cor",Resultado,keyby=Produto])
+```
+
+## Cor ASTM
+
+Valores reportados como "<1.0" foram substituídos por "1.0".
+Valores reportados como "<1.5" foram substituídos por "1.5".
+Valores reportados como "<2.0" foram substituídos por "2.0".
+
+```{r corASTM,echo=FALSE,cache=TRUE,warning=FALSE}
+##################################################
+# pmqc.un.dt[Ensaio.=="CorASTM",unique(Resultado)]
+corastm.dt <- pmqc.un.dt[Ensaio.=="CorASTM",Resultado,
+                      keyby=Produto]
+
+corastm.dt[Resultado %in% c("<1.0","1.0"),Resultado:="1.0"]
+corastm.dt[Resultado %in% c("<1.5","1.5"),Resultado:="1.5"]
+corastm.dt[Resultado %in% c("<2.0","2.0"),Resultado:="2.0"]
+
+# table(corastm.dt)
+# barplot(table(corastm.dt))
+
+(corastm.table <- table(corastm.dt))
+op <- par(mfrow=c(2,2),oma=c(0,0,2,0),mar=c(5,4,1,1),cex.main=.9)
+mycols <- c("gray30","gray85")
+barplot(corastm.table,main="Cor ASTM",ylab="Frequência",
+        col=mycols,
+        xlim=c(0, ncol(corastm.table) + 2))
+legend("topright",legend=c("S10 Comum","S10 Aditivado"),
+       fill=mycols,
+       cex=.75)
+par(op)
+```
+
+
+## Destilação: 10% Evaporados
+
+```{r T10ev,echo=FALSE,cache=TRUE,warning=FALSE}
+##################################################
+
+t10ev.dt <- pmqc.un.dt[Componente=="Destilacao - 10% Evaporado",
+                       as.numeric(Resultado),keyby=Produto]
+t10ev.dt[Produto %in% c("GASOLINA C ADITIVADA","GASOLINA C COMUM"),
+         Produto:="GCC-GCA"]
+t10ev.dt[Produto=="GASOLINA C PREMIUM",
+         Produto:="GCP"]
+
+# sum(is.na(t10ev.dt))
+aggregate(t10ev.dt$V1,by=list(t10ev.dt$Produto),FUN=summary)
+
+# op <- par(mfcol=c(2,2))
+# op <- par(mfrow=c(2,2),oma=c(0,0,2,0),mar=c(5,2,1,1),cex.main=.9)
+op <- par(mfrow=c(2,2),oma=c(0,0,2,0),mar=c(5,4,1,1),cex.main=.9)
+prods <- t10ev.dt[,unique(Produto)]
+for(i in prods) {
+        hist(t10ev.dt[Produto==i,V1],main=i,
+             xlab=expression(paste("T10ev, ",degree,"C")),
+             xlim=c(48,65),
+             breaks=seq(floor(min(t10ev.dt[,V1])),
+                        ceiling(max(t10ev.dt[,V1])),length.out=100))
+}
+par(op)
+```
+
+**Cinco menores valores de T10ev:**
+
+```{r T10ev.2,echo=FALSE,cache=TRUE,warning=FALSE}
+pmqc.un.dt[Componente=="Destilacao - 10% Evaporado",
+           ][order(as.numeric(Resultado)),.(Id.text,Resultado)
+             ][1:5,]
+```
+
+**Cinco maiores valores de T10ev:**
+
+```{r T10ev.3,echo=FALSE,cache=TRUE,warning=FALSE}
+pmqc.un.dt[Componente=="Destilacao - 10% Evaporado",
+           ][order(-as.numeric(Resultado)),.(Id.text,Resultado)
+             ][1:5,]
+```
+
+## Destilação: 50% Evaporados
+
+```{r T50ev,echo=FALSE,cache=TRUE,warning=FALSE}
+##################################################
+
+t50ev.dt <- pmqc.un.dt[Componente=="Destilacao - 50% Evaporado",
+                       as.numeric(Resultado),keyby=Produto]
+t50ev.dt[Produto %in% c("GASOLINA C ADITIVADA","GASOLINA C COMUM"),
+         Produto:="GCC-GCA"]
+t50ev.dt[Produto=="GASOLINA C PREMIUM",
+         Produto:="GCP"]
+
+# sum(is.na(t50ev.dt))
+aggregate(t50ev.dt$V1,by=list(t50ev.dt$Produto),FUN=summary)
+
+# op <- par(mfrow=c(2,2),oma=c(0,0,2,0),mar=c(5,2,1,1),cex.main=.9)
+op <- par(mfrow=c(2,2),oma=c(0,0,2,0),mar=c(5,4,1,1),cex.main=.9)
+prods <- t50ev.dt[,unique(Produto)]
+for(i in prods) {
+        hist(t50ev.dt[Produto==i,V1],main=i,
+             xlab=expression(paste("T50ev, ",degree,"C")),
+             xlim=c(68,78),
+             breaks=seq(floor(min(t50ev.dt[,V1])),
+                        ceiling(max(t50ev.dt[,V1])),length.out=100))
+}
+par(op)
+```
+
+**Cinco maiores valores de T50ev:**
+
+```{r T50ev.2,echo=FALSE,cache=TRUE,warning=FALSE}
+pmqc.un.dt[Componente=="Destilacao - 50% Evaporado",
+           ][order(-as.numeric(Resultado)),.(Id.text,Resultado)
+             ][1:5,]
+```
+
+## Destilação: 90% Evaporados
+
+```{r T90ev,echo=FALSE,cache=TRUE,warning=FALSE}
+##################################################
+
+t90ev.dt <- pmqc.un.dt[Componente=="Destilacao - 90% Evaporado",
+                       as.numeric(Resultado),keyby=Produto]
+t90ev.dt[Produto %in% c("GASOLINA C ADITIVADA","GASOLINA C COMUM"),
+         Produto:="GCC-GCA"]
+t90ev.dt[Produto=="GASOLINA C PREMIUM",
+         Produto:="GCP"]
+
+# sum(is.na(t90ev.dt))
+aggregate(t90ev.dt$V1,by=list(t90ev.dt$Produto),FUN=summary)
+
+# op <- par(mfcol=c(2,2))
+# op <- par(mfrow=c(2,2),oma=c(0,0,2,0),mar=c(5,2,1,1),cex.main=.9)
+op <- par(mfrow=c(2,2),oma=c(0,0,2,0),mar=c(5,4,1,1),cex.main=.9)
+prods <- t90ev.dt[,unique(Produto)]
+for(i in prods) {
+        hist(t90ev.dt[Produto==i,V1],main=i,
+             xlab=expression(paste("T90ev, ",degree,"C")),
+             xlim=c(110,180),
+             breaks=seq(floor(min(t90ev.dt[,V1])),
+                        ceiling(max(t90ev.dt[,V1])),length.out=120)
+             )
+}
+par(op)
+```
+
+**Cinco maiores valores de T90ev:**
+
+```{r T90ev.2,echo=FALSE,cache=TRUE,warning=FALSE}
+pmqc.un.dt[Componente=="Destilacao - 90% Evaporado",
+           ][order(-as.numeric(Resultado)),.(Id.text,Resultado,Produto)
+             ][1:5,]
+```
+
+## Destilação: PFE
+
+```{r PFE,echo=FALSE,cache=TRUE,warning=FALSE}
+##################################################
+
+pfe.dt <- pmqc.un.dt[Componente=="Destilacao - PFE",
+                       as.numeric(Resultado),keyby=Produto]
+pfe.dt[Produto %in% c("GASOLINA C ADITIVADA","GASOLINA C COMUM"),
+         Produto:="GCC-GCA"]
+pfe.dt[Produto=="GASOLINA C PREMIUM",
+         Produto:="GCP"]
+
+# sum(is.na(pfe.dt))
+aggregate(pfe.dt$V1,by=list(pfe.dt$Produto),FUN=summary)
+
+# op <- par(mfcol=c(2,2))
+# op <- par(mfrow=c(2,2),oma=c(0,0,2,0),mar=c(5,2,1,1),cex.main=.9)
+op <- par(mfrow=c(2,2),oma=c(0,0,2,0),mar=c(5,4,1,1),cex.main=.9)
+prods <- pfe.dt[,unique(Produto)]
+for(i in prods) {
+        hist(pfe.dt[Produto==i,V1],main=i,
+             xlab=expression(paste("PFE, ",degree,"C")),
+             xlim=c(160,240),
+             breaks=seq(floor(min(pfe.dt[,V1])),
+                        ceiling(max(pfe.dt[,V1])),length.out=120))
+}
+par(op)
+```
+
+**Cinco maiores valores de PFE:**
+
+```{r PFE.2,echo=FALSE,cache=TRUE,warning=FALSE}
+pmqc.un.dt[Componente=="Destilacao - PFE",
+           ][order(-as.numeric(Resultado)),.(Id.text,Resultado,Produto)
+             ][1:5,]
+```
+
+## Destilação: Resíduo
+
+```{r res,echo=FALSE,cache=TRUE,warning=FALSE}
+##################################################
+
+res.dt <- pmqc.un.dt[Componente=="Destilacao - Residuo",
+                       as.numeric(Resultado),keyby=Produto]
+res.dt[Produto %in% c("GASOLINA C ADITIVADA","GASOLINA C COMUM"),
+         Produto:="GCC-GCA"]
+res.dt[Produto=="GASOLINA C PREMIUM",
+         Produto:="GCP"]
+
+# sum(is.na(res.dt))
+aggregate(res.dt$V1,by=list(res.dt$Produto),FUN=summary)
+
+# op <- par(mfcol=c(2,2))
+# op <- par(mfrow=c(2,2),oma=c(0,0,2,0),mar=c(5,2,1,1),cex.main=.9)
+op <- par(mfrow=c(2,2),oma=c(0,0,2,0),mar=c(5,4,1,1),cex.main=.9)
+prods <- res.dt[,unique(Produto)]
+for(i in prods) {
+        hist(res.dt[Produto==i,V1],main=i,
+             xlab="Resíduo, %",xlim=c(.4,1.6),
+             breaks=seq(floor(min(res.dt[,V1])),
+                        ceiling(max(res.dt[,V1])),by=.1)
+             )
+}
+par(op)
+```
+
+**Cinco maiores valores de resíduo:**
+
+```{r res.2,echo=FALSE,cache=TRUE,warning=FALSE}
+pmqc.un.dt[Componente=="Destilacao - Residuo",
+           ][order(-as.numeric(Resultado)),.(Id.text,Resultado,Produto)
+             ][1:5,]
+```
+
+## Destilação: Perda
+
+```{r perda,echo=FALSE,cache=TRUE,warning=FALSE}
+##################################################
+
+perda.dt <- pmqc.un.dt[Componente=="Destilacao - Perda",
+                       as.numeric(Resultado),keyby=Produto]
+perda.dt[Produto %in% c("GASOLINA C ADITIVADA","GASOLINA C COMUM"),
+         Produto:="GCC-GCA"]
+perda.dt[Produto=="GASOLINA C PREMIUM",
+         Produto:="GCP"]
+
+# sum(is.na(perda.dt))
+aggregate(perda.dt$V1,by=list(perda.dt$Produto),FUN=summary)
+
+# op <- par(mfcol=c(2,2))
+# op <- par(mfrow=c(2,2),oma=c(0,0,2,0),mar=c(5,2,1,1),cex.main=.9)
+op <- par(mfrow=c(2,2),oma=c(0,0,2,0),mar=c(5,4,1,1),cex.main=.9)
+prods <- perda.dt[,unique(Produto)]
+for(i in prods) {
+        hist(perda.dt[Produto==i,V1],main=i,
+             xlab="Perda, %",xlim=c(.3,2.2),
+             breaks=seq(floor(min(perda.dt[,V1])),
+                        ceiling(max(perda.dt[,V1])),by=.1)
+             )
+}
+par(op)
+```
+
+**Cinco maiores valores de perda:**
+
+```{r perda.2,echo=FALSE,cache=TRUE,warning=FALSE}
+pmqc.un.dt[Componente=="Destilacao - Perda",
+           ][order(-as.numeric(Resultado)),.(Id.text,Resultado,Produto)
+             ][1:5,]
+```
+
+## Destilação: 10% Recuperados
+
+```{r T10rec,echo=FALSE,cache=TRUE,warning=FALSE}
+##################################################
+
+t10rec.dt <- pmqc.un.dt[Componente=="Destilacao - 10% Recuperados",
+                       as.numeric(Resultado),keyby=Produto]
+t10rec.dt[Produto %in% c("OLEO DIESEL B S500 COMUM","OLEO DIESEL B S500 ADITIVADO"),
+          Produto:="DIESEL B S500"]
+t10rec.dt[Produto %in% c("OLEO DIESEL B S10 COMUM","OLEO DIESEL B S10 ADITIVADO"),
+          Produto:="DIESEL B S10"]
+
+# sum(is.na(t10rec.dt))
+aggregate(t10rec.dt$V1,by=list(t10rec.dt$Produto),FUN=summary)
+
+# op <- par(mfcol=c(2,2))
+# op <- par(mfrow=c(2,2),oma=c(0,0,2,0),mar=c(5,2,1,1),cex.main=.9)
+op <- par(mfrow=c(2,2),oma=c(0,0,2,0),mar=c(5,4,1,1),cex.main=.9)
+prods <- t10rec.dt[,unique(Produto)]
+for(i in prods) {
+        hist(t10rec.dt[Produto==i,V1],main=i,
+             xlab=expression(paste("T10rec, ",degree,"C")),
+             xlim=c(182,220),
+             breaks=seq(floor(min(t10rec.dt[,V1])),
+                        ceiling(max(t10rec.dt[,V1])),length.out=200))
+}
+par(op)
+```
+
+**Cinco menores valores de T10rec:**
+
+```{r T10rec.2,echo=FALSE,cache=TRUE,warning=FALSE}
+pmqc.un.dt[Componente=="Destilacao - 10% Recuperados",
+           ][order(as.numeric(Resultado)),.(Id.text,Resultado,Produto)
+             ][1:5,]
+```
+
+## Destilação: 50% Recuperados
+
+```{r T50rec,echo=FALSE,cache=TRUE,warning=FALSE}
+##################################################
+
+t50rec.dt <- pmqc.un.dt[Componente=="Destilacao - 50% Recuperados",
+                       as.numeric(Resultado),keyby=Produto]
+t50rec.dt[Produto %in% c("OLEO DIESEL B S500 COMUM","OLEO DIESEL B S500 ADITIVADO"),
+          Produto:="DIESEL B S500"]
+t50rec.dt[Produto %in% c("OLEO DIESEL B S10 COMUM","OLEO DIESEL B S10 ADITIVADO"),
+          Produto:="DIESEL B S10"]
+
+# sum(is.na(t50rec.dt))
+aggregate(t50rec.dt$V1,by=list(t50rec.dt$Produto),FUN=summary)
+
+# op <- par(mfcol=c(2,2))
+# op <- par(mfrow=c(2,2),oma=c(0,0,2,0),mar=c(5,2,1,1),cex.main=.9)
+op <- par(mfrow=c(2,2),oma=c(0,0,2,0),mar=c(5,4,1,1),cex.main=.9)
+prods <- t50rec.dt[,unique(Produto)]
+for(i in prods) {
+        hist(t50rec.dt[Produto==i,V1],main=i,
+             xlab=expression(paste("T50rec, ",degree,"C")),
+             xlim=c(255,297),
+             breaks=seq(floor(min(t50rec.dt[,V1])),
+                        ceiling(max(t50rec.dt[,V1])),length.out=60))
+}
+par(op)
+```
+
+**Cinco menores valores de T50rec:**
+
+```{r T50rec.2,echo=FALSE,cache=TRUE,warning=FALSE}
+pmqc.un.dt[Componente=="Destilacao - 50% Recuperados",
+           ][order(as.numeric(Resultado)),.(Id.text,Resultado,Produto)
+             ][1:5,]
+```
+
+**Cinco maiores valores de T50rec:**
+
+```{r T50rec.3,echo=FALSE,cache=TRUE,warning=FALSE}
+pmqc.un.dt[Componente=="Destilacao - 50% Recuperados",
+           ][order(-as.numeric(Resultado)),.(Id.text,Resultado,Produto)
+             ][1:5,]
+```
+
+## Destilação: 85% Recuperados
+
+```{r T85rec,echo=FALSE,cache=TRUE,warning=FALSE}
+##################################################
+
+t85rec.dt <- pmqc.un.dt[Componente=="Destilacao - 85% Recuperados",
+                       as.numeric(Resultado),keyby=Produto]
+t85rec.dt[Produto %in% c("OLEO DIESEL B S500 COMUM","OLEO DIESEL B S500 ADITIVADO"),
+          Produto:="DIESEL B S500"]
+t85rec.dt[Produto %in% c("OLEO DIESEL B S10 COMUM","OLEO DIESEL B S10 ADITIVADO"),
+          Produto:="DIESEL B S10"]
+
+# sum(is.na(t85rec.dt))
+aggregate(t85rec.dt$V1,by=list(t85rec.dt$Produto),FUN=summary)
+
+# op <- par(mfcol=c(2,2))
+# op <- par(mfrow=c(2,2),oma=c(0,0,2,0),mar=c(5,2,1,1),cex.main=.9)
+op <- par(mfrow=c(2,2),oma=c(0,0,2,0),mar=c(5,4,1,1),cex.main=.9)
+prods <- t85rec.dt[,unique(Produto)]
+for(i in prods) {
+        hist(t85rec.dt[Produto==i,V1],main=i,
+             xlab=expression(paste("T85rec, ",degree,"C")),
+             xlim=c(311,360),
+             breaks=seq(floor(min(t85rec.dt[,V1])),
+                        ceiling(max(t85rec.dt[,V1])),length.out=2000))
+}
+par(op)
+```
+
+**Cinco maiores valores de T85rec:**
+
+```{r T85rec.2,echo=FALSE,cache=TRUE,warning=FALSE}
+pmqc.un.dt[Componente=="Destilacao - 85% Recuperados",
+           ][order(-as.numeric(Resultado)),.(Id.text,Resultado,Produto)
+             ][1:5,]
+```
+
+
+## Destilação: 90% Recuperados
+
+```{r T90rec,echo=FALSE,cache=TRUE,warning=FALSE}
+##################################################
+
+t90rec.dt <- pmqc.un.dt[Componente=="Destilacao - 90% Recuperados",
+                       as.numeric(Resultado),keyby=Produto]
+t90rec.dt[Produto %in% c("OLEO DIESEL B S500 COMUM","OLEO DIESEL B S500 ADITIVADO"),
+          Produto:="DIESEL B S500"]
+t90rec.dt[Produto %in% c("OLEO DIESEL B S10 COMUM","OLEO DIESEL B S10 ADITIVADO"),
+          Produto:="DIESEL B S10"]
+
+# sum(is.na(t90rec.dt))
+aggregate(t90rec.dt$V1,by=list(t90rec.dt$Produto),FUN=summary)
+
+# op <- par(mfcol=c(2,2))
+# op <- par(mfrow=c(2,2),oma=c(0,0,2,0),mar=c(5,2,1,1),cex.main=.9)
+op <- par(mfrow=c(2,2),oma=c(0,0,2,0),mar=c(5,4,1,1),cex.main=.9)
+prods <- t90rec.dt[,unique(Produto)]
+for(i in prods) {
+        hist(t90rec.dt[Produto==i,V1],main=i,
+             xlab=expression(paste("T90rec, ",degree,"C")),
+             xlim=c(325,370),
+             breaks=seq(floor(min(t90rec.dt[,V1])),
+                        ceiling(max(t90rec.dt[,V1])),length.out=60))
+}
+par(op)
+```
+
+**Cinco menores valores de T90rec:**
+
+```{r T90rec.2,echo=FALSE,cache=TRUE,warning=FALSE}
+pmqc.un.dt[Componente=="Destilacao - 90% Recuperados",
+           ][order(as.numeric(Resultado)),.(Id.text,Resultado,Produto)
+             ][1:5,]
+```
+
+**Cinco maiores valores de T90rec:**
+
+```{r T90rec.3,echo=FALSE,cache=TRUE,warning=FALSE}
+pmqc.un.dt[Componente=="Destilacao - 90% Recuperados",
+           ][order(-as.numeric(Resultado)),.(Id.text,Resultado,Produto)
+             ][1:5,]
+```
+
+## Destilação: 95% Recuperados
+
+```{r T95rec,echo=FALSE,cache=TRUE,warning=FALSE}
+##################################################
+
+t95rec.dt <- pmqc.un.dt[Componente=="Destilacao - 95% Recuperados",
+                       as.numeric(Resultado),keyby=Produto]
+t95rec.dt[Produto %in% c("OLEO DIESEL B S500 COMUM","OLEO DIESEL B S500 ADITIVADO"),
+          Produto:="DIESEL B S500"]
+t95rec.dt[Produto %in% c("OLEO DIESEL B S10 COMUM","OLEO DIESEL B S10 ADITIVADO"),
+          Produto:="DIESEL B S10"]
+
+# sum(is.na(t95rec.dt))
+aggregate(t95rec.dt$V1,by=list(t95rec.dt$Produto),FUN=summary)
+
+# op <- par(mfcol=c(2,2))
+# op <- par(mfrow=c(2,2),oma=c(0,0,2,0),mar=c(5,2,1,1),cex.main=.9)
+op <- par(mfrow=c(2,2),oma=c(0,0,2,0),mar=c(5,4,1,1),cex.main=.9)
+prods <- t95rec.dt[,unique(Produto)]
+for(i in prods) {
+        hist(t95rec.dt[Produto==i,V1],main=i,
+             xlab=expression(paste("T95rec, ",degree,"C")),
+             xlim=c(340,400),
+             breaks=seq(floor(min(t95rec.dt[,V1])),
+                        ceiling(max(t95rec.dt[,V1])),length.out=400))
+}
+par(op)
+```
+
+**Cinco maiores valores de T95rec para diesel S10:**
+
+```{r T95rec.2,echo=FALSE,cache=TRUE,warning=FALSE}
+pmqc.un.dt[(Componente=="Destilacao - 95% Recuperados" & 
+                   (Produto=="OLEO DIESEL B S10 COMUM" | 
+                            Produto=="OLEO DIESEL B S10 ADITIVADO")),
+           ][order(-as.numeric(Resultado)),.(Id.text,Resultado,Produto)
+             ][1:5,]
+```
+
+## Condutividade Elétrica
+
+```{r cond,echo=FALSE,cache=TRUE,warning=FALSE}
+##################################################
+
+ce.dt <- pmqc.un.dt[Componente=="Condutividade Eletrica",as.numeric(Resultado),
+                     keyby=Grupo.produto]
+# sum(is.na(ce.dt))
+aggregate(ce.dt$V1,by=list(ce.dt$Grupo.produto),FUN=summary)
+
+# op <- par(mfrow=c(3,2),oma=c(0,0,2,0),mar=c(5,2,1,1),cex.main=.9)
+op <- par(mfrow=c(2,2),oma=c(0,0,2,0),mar=c(5,4,1,1),cex.main=.9)
+prods <- ce.dt[,unique(Grupo.produto)]
+for(i in prods) {
+        hist(ce.dt[Grupo.produto==i,V1],main=i,
+             xlab=expression(paste("Condutividade Eletrica, ",mu,"S/m")),
+             xlim=c(0,220),
+             breaks=seq(floor(min(ce.dt[,V1])),
+                        ceiling(max(ce.dt[,V1])),length.out=200))
+}
+par(op)
+```
+
+**Cinco maiores valores de condutividade elétrica:**
+
+```{r cond.2,echo=FALSE,cache=TRUE,warning=FALSE}
+pmqc.un.dt[Componente=="Condutividade Eletrica",][order(-as.numeric(Resultado)),.(Contratada,Id.text,Resultado)][1:5,]
+```
+
+## Massa Específica a 20°C.
+
+```{r ME20C,echo=FALSE,cache=TRUE,warning=FALSE}
+##################################################
+
+me.dt <- pmqc.un.dt[Ensaio.=="ME20C",as.numeric(Resultado),
+                    keyby=Produto]
+me.dt[Produto %in% c("GASOLINA C ADITIVADA","GASOLINA C COMUM"),
+      Produto:="GCC-GCA"]
+me.dt[Produto=="GASOLINA C PREMIUM",
+      Produto:="GCP"]
+me.dt[Produto %in% c("ETANOL HIDRATADO COMUM","ETANOL HIDRATADO ADITIVADO"),
+      Produto:="ETANOL"]
+me.dt[Produto %in% c("OLEO DIESEL B S500 COMUM","OLEO DIESEL B S500 ADITIVADO"),
+      Produto:="DIESEL B S500"]
+me.dt[Produto %in% c("OLEO DIESEL B S10 COMUM","OLEO DIESEL B S10 ADITIVADO"),
+      Produto:="DIESEL B S10"]
+
+# sum(is.na(me.dt))
+aggregate(me.dt$V1,by=list(me.dt$Produto),FUN=summary)
+
+op <- par(mfrow=c(3,3),oma=c(0,0,2,0),mar=c(5,4,1,1),cex.main=.75)
+prods.g <- c("GCC-GCA","GCP")
+for(i in prods.g) {
+        hist(me.dt[Produto==i,V1],main=i,
+             xlim=c(720,750),
+             xlab=expression(paste("Massa Especifica, ",kg/m^3)),
+             breaks=seq(floor(min(me.dt[,V1])),
+                        ceiling(max(me.dt[,V1])),by=1))
+}
+prods.d <- c("DIESEL B S500","DIESEL B S10")
+for(i in prods.d) {
+        hist(me.dt[Produto==i,V1],main=i,
+             xlim=c(830,860),
+             xlab=expression(paste("Massa Especifica, ",kg/m^3)),
+             breaks=seq(floor(min(me.dt[,V1])),ceiling(max(me.dt[,V1])),by=1))
+}
+hist(me.dt[Produto=="ETANOL",V1],main="ETANOL",
+             xlim=c(808.5,811.5),
+             xlab=expression(paste("Massa Especifica, ",kg/m^3)),
+             breaks=seq(floor(min(me.dt[,V1])),ceiling(max(me.dt[,V1])),by=.2))
+
+par(op)
+```
+
+## Teor Alcoólico
+
+```{r TAlc,echo=FALSE,cache=TRUE,warning=FALSE}
+##################################################
+TAlc.dt <- pmqc.un.dt[Ensaio.=="TAlc",as.numeric(Resultado),
+                      keyby=Grupo.produto]
+# sum(is.na(TAlc.dt))
+aggregate(TAlc.dt$V1,by=list(TAlc.dt$Grupo.produto),FUN=summary)
+
+op <- par(mfrow=c(2,2),oma=c(0,0,2,0),mar=c(5,4,1,1),cex.main=.9)
+prods <- TAlc.dt[,unique(Grupo.produto)]
+for(i in prods) {
+        hist(TAlc.dt[Grupo.produto==i,V1],main=i,
+             xlab="Teor Alcoólico, % massa",
+             xlim=c(92,93.5),
+             breaks=seq(floor(min(TAlc.dt[,V1])),ceiling(max(TAlc.dt[,V1])),by=.1))
+}
+par(op)
+```
+
+**Dez menores valores de teor alcoólico:**
+
+```{r TAlc.2,echo=FALSE,cache=TRUE,warning=FALSE}
+pmqc.un.dt[Ensaio.=="TAlc",][order(as.numeric(Resultado)),.(Contratada,Id.text,Resultado)][1:10,]
+```
+
+
+## Teor de Etanol
+
+```{r TEth,echo=FALSE,cache=TRUE,warning=FALSE}
+##################################################
+teth.dt <- pmqc.un.dt[Ensaio.=="TEth",as.numeric(Resultado),
+                    keyby=Produto]
+teth.dt[Produto %in% c("GASOLINA C ADITIVADA","GASOLINA C COMUM"),
+      Produto:="GCC-GCA"]
+teth.dt[Produto=="GASOLINA C PREMIUM",
+      Produto:="GCP"]
+# sum(is.na(teth.dt))
+aggregate(teth.dt$V1,by=list(teth.dt$Produto),FUN=summary)
+
+op <- par(mfrow=c(2,3),oma=c(0,0,2,0),mar=c(5,4,1,1),cex.main=.9)
+prods <- teth.dt[,unique(Produto)]
+for(i in prods) {
+        hist(teth.dt[Produto==i,V1],main=i,
+             xlim=c(22,30),
+             xlab="Teor de Etanol, % volume",
+             breaks=seq(floor(min(teth.dt[,V1])),ceiling(max(teth.dt[,V1])),by=1))
+}
+par(op)
+```
+
+**Cinco menores valores de teor de etanol:**
+
+```{r TEth.2,echo=FALSE,cache=TRUE,warning=FALSE}
+pmqc.un.dt[Ensaio.=="TEth",][order(as.numeric(Resultado)),
+                             .(Contratada,Id.text,Resultado)][1:5,]
+```
+
+**Quinze maiores valores de teor de etanol:**
+
+```{r TEth.3,echo=FALSE,cache=TRUE,warning=FALSE}
+pmqc.un.dt[Ensaio.=="TEth",][order(-as.numeric(Resultado)),
+                             .(Contratada,Id.text,Resultado)][1:15,]
+```
+
+## pH
+
+```{r ph,echo=FALSE,cache=TRUE,warning=FALSE}
+##################################################
+
+ph.dt <- pmqc.un.dt[Ensaio.=="pH",
+                    .(Contratada,Id.text,Resultado),
+                    keyby=Grupo.produto]
+ph.dt[,Resultado:=as.numeric(Resultado)]
+# sum(is.na(ph.dt))
+aggregate(ph.dt$Resultado,by=list(ph.dt$Grupo.produto),FUN=summary)
+
+# prods <- ph.dt[,unique(Produto)]
+op <- par(mfrow=c(3,2),oma=c(0,0,2,0),mar=c(5,4,1,1),cex.main=.9)
+hist(ph.dt[,Resultado],
+     main="Etanol: pH",xlab="pH",ylab="Frequência")
+# for(i in prods) {
+#         hist(ph.dt[Produto==i,V1],main=paste("pH:",i),
+#              xlab="pH")
+# }
+par(op)
+```
+
+**Dez menores valores de pH:**
+
+```{r ph.2,echo=FALSE,cache=TRUE,warning=FALSE}
+pmqc.un.dt[Ensaio.=="pH",][order(as.numeric(Resultado)),
+                           .(Contratada,Id.text,Resultado)][1:10,]
+```
+
+**Dez maiores valores de pH:**
+
+```{r ph.3,echo=FALSE,cache=TRUE,warning=FALSE}
+pmqc.un.dt[Ensaio.=="pH",][order(-as.numeric(Resultado)),
+                           .(Contratada,Id.text,Resultado)][1:10,]
+```
+
+
+## Teor de Hidrocarbonetos
+
+Valores reportados como "<2" foram forçados para o valor de 2.
+Valores reportados como ">4" foram forçados para o valor de 4.
+
+```{r thc,echo=FALSE,cache=TRUE,warning=FALSE}
+##################################################
+thc.dt <- pmqc.un.dt[Ensaio.=="THC",
+                     .(Contratada,Id.text,Resultado),
+                     keyby=Grupo.produto]
+thc.dt[,Resultado:=gsub(">","",thc.dt[,Resultado])]
+thc.dt[,Resultado:=gsub("<","",thc.dt[,Resultado])]
+thc.dt[,Resultado:=as.numeric(thc.dt[,Resultado])]
+
+(thc.table <- table(thc.dt[,.(Grupo.produto,Resultado)]))
+op <- par(mfrow=c(2,2),oma=c(0,0,2,0),mar=c(5,4,1,1),cex.main=.9)
+barplot(thc.table,main="Teor de Hidrocarbonetos",xlab="% vol",ylab="Frequência"
+        # ,col=c("gray30","gray85")
+        # ,xlim=c(0, ncol(thc.table) + 2)
+        )
+# legend("topright",legend=c("EHC","EHC Aditivado"),fill=c("gray85","gray30"),
+#        cex=.75)
+par(op)
+```
+
+**Cinco maiores valores de teor de hidrocarbonetos:**
+
+```{r thc.2,echo=FALSE,cache=TRUE,warning=FALSE}
+thc.dt[order(-as.numeric(Resultado)),.(Contratada,Id.text,Resultado)][1:5,]
+```
+
+
+## Teor de Metanol
+
+```{r TMet,echo=FALSE,cache=TRUE,warning=FALSE}
+##################################################
+
+tmet.dt <- pmqc.un.dt[Ensaio.=="TMet",
+                      .(Contratada,Id.text,Resultado),
+                        keyby=Grupo.produto]
+tmet.dt[,Resultado:=gsub("<","",tmet.dt[,Resultado])]
+tmet.dt[,Resultado:=as.numeric(tmet.dt[,Resultado])]
+
+(tmet.table <- table(tmet.dt[,.(Grupo.produto,Resultado)]))
+op <- par(mfrow=c(2,2),oma=c(0,0,2,0),mar=c(5,4,1,1),cex.main=.9)
+mycols <- c("gray30","gray85")
+barplot(tmet.table,
+        main="Teor de Metanol",xlab="% vol",ylab="Frequência",
+        col=mycols,
+        xlim=c(0, ncol(tmet.table) + 2))
+legend("topright",legend=c("Etanol","Gasolina"),fill=mycols,
+       cex=.75)
+par(op)
+# barplot(table(tmet.dt))
+```
+
+**Cinco maiores valores de teor de metanol:**
+
+```{r TMet.2,echo=FALSE,cache=TRUE,warning=FALSE}
+tmet.dt[order(-as.numeric(Resultado)),.(Contratada,Id.text,Resultado,Grupo.produto)
+        ][1:5,]
+```
+
+## Teor de Enxofre
+
+```{r Enxofre,echo=FALSE,cache=TRUE,warning=FALSE}
+##################################################
+
+s.dt <- pmqc.un.dt[Ensaio.=="Enxofre",as.numeric(Resultado),
+                    keyby=Produto]
+s.dt[Produto %in% c("GASOLINA C ADITIVADA","GASOLINA C COMUM"),
+      Produto:="GCC-GCA"]
+s.dt[Produto=="GASOLINA C PREMIUM",
+      Produto:="GCP"]
+s.dt[Produto %in% c("OLEO DIESEL B S500 COMUM","OLEO DIESEL B S500 ADITIVADO"),
+      Produto:="DIESEL B S500"]
+s.dt[Produto %in% c("OLEO DIESEL B S10 COMUM","OLEO DIESEL B S10 ADITIVADO"),
+      Produto:="DIESEL B S10"]
+
+# sum(is.na(s.dt))
+aggregate(s.dt$V1,by=list(s.dt$Produto),FUN=summary)
+
+op <- par(mfrow=c(3,3),oma=c(0,0,2,0),mar=c(5,4,1,1),cex.main=.75)
+# prods <- s.dt[,unique(Produto)]
+# prods.G <- prods[1:3]
+# prods.S10 <- prods[4:5]
+# prods.S500 <- prods[6:7]
+for(i in prods.g) {
+        hist(s.dt[Produto==i,V1],main=i,
+             xlab="Teor de Enxofre, mg/kg",
+             xlim=c(10,60),
+             breaks=seq(floor(min(s.dt[Produto %in% prods.g,V1])),
+                        ceiling(max(s.dt[Produto %in% prods.g,V1])),length.out=50)
+             )
+}
+
+hist(s.dt[Produto=="DIESEL B S500",V1],main="DIESEL B S500",
+     xlab="Teor de Enxofre, mg/kg",
+     xlim=c(150,500),
+     breaks=seq(floor(min(s.dt[Produto=="DIESEL B S500",V1])),
+                ceiling(max(s.dt[Produto=="DIESEL B S500",V1])),length.out=50)
+     )
+
+hist(s.dt[Produto=="DIESEL B S10",V1],main="DIESEL B S10",
+     xlab="Teor de Enxofre, mg/kg",
+     xlim=c(0,20),
+     breaks=seq(floor(min(s.dt[Produto=="DIESEL B S10",V1])),
+                ceiling(max(s.dt[Produto=="DIESEL B S10",V1])),length.out=30)
+     )
+
+par(op)
+```
+
+**Cinco maiores valores de teor de enxofre para gasolina:**
+
+```{r Enxofre.g,echo=FALSE,cache=TRUE,warning=FALSE}
+pmqc.un.dt[Grupo.produto=="Gasolina" & Ensaio.=="Enxofre",
+           .(Id.text,Resultado)][order(-as.numeric(Resultado))][1:5]
+
+```
+
+**Cinco maiores valores de teor de enxofre para óleo diesel S10:**
+
+```{r Enxofre.s10,echo=FALSE,cache=TRUE,warning=FALSE}
+pmqc.un.dt[Produto %in% c("OLEO DIESEL B S10 COMUM",
+                          "OLEO DIESEL B S10 ADITIVADO") & Ensaio.=="Enxofre",
+           .(Id.text,Resultado)][order(-as.numeric(Resultado))][1:5]
+
+```
+
+**Cinco maiores valores de teor de enxofre para óleo diesel S500:**
+
+```{r Enxofre.s500,echo=FALSE,cache=TRUE,warning=FALSE}
+pmqc.un.dt[Produto %in% c("OLEO DIESEL B S500 COMUM",
+                          "OLEO DIESEL B S500 ADITIVADO") & Ensaio.=="Enxofre",
+           .(Id.text,Resultado)][order(-as.numeric(Resultado))][1:5]
+
+```
+
+## Ponto de Fulgor
+
+```{r Fulgor,echo=FALSE,cache=TRUE,warning=FALSE}
+##################################################
+fulgor.dt <- pmqc.un.dt[Ensaio.=="Fulgor",as.numeric(Resultado),
+                   keyby=Produto]
+fulgor.dt[Produto %in% c("OLEO DIESEL B S500 COMUM","OLEO DIESEL B S500 ADITIVADO"),
+      Produto:="DIESEL B S500"]
+fulgor.dt[Produto %in% c("OLEO DIESEL B S10 COMUM","OLEO DIESEL B S10 ADITIVADO"),
+      Produto:="DIESEL B S10"]
+
+# sum(is.na(fulgor.dt))
+aggregate(fulgor.dt$V1,by=list(fulgor.dt$Produto),FUN=summary)
+
+prods <- fulgor.dt[,unique(Produto)]
+op <- par(mfrow=c(3,2),oma=c(0,0,2,0),mar=c(5,4,1,1),cex.main=.9)
+for(i in prods) {
+        hist(fulgor.dt[Produto==i,V1],main=i,
+             xlab=expression(paste("Ponto de Fulgor, ",degree,"C")),
+             xlim=c(32,76),breaks=seq(floor(min(fulgor.dt[,V1])),
+                                      ceiling(max(fulgor.dt[,V1])),by=1))
+}
+par(op)
+```
+
+**Cinco menores valores de ponto de fulgor:**
+
+```{r Fulgor.2,echo=FALSE,cache=TRUE,warning=FALSE}
+pmqc.un.dt[Ensaio.=="Fulgor",][order(as.numeric(Resultado)),.(Contratada,Id.text,Resultado)][1:5,]
+```
+
+## Marcador
+
+```{r marcador,echo=FALSE,cache=TRUE,warning=FALSE}
+##################################################
+
+# pmqc.un.dt[Ensaio.=="Marcador",unique(Resultado)]
+marcador.dt <- pmqc.un.dt[Ensaio.=="Marcador",.(Id.text,Resultado),
+                         keyby=Grupo.produto]
+marcador.dt[,Resultado:=gsub("<","",marcador.dt[,Resultado])]
+marcador.dt[,Resultado:=gsub(">","",marcador.dt[,Resultado])]
+marcador.dt[,Resultado:=as.numeric(marcador.dt[,Resultado])]
+
+(marcador.table <- table(marcador.dt[,.(Grupo.produto,Resultado)]))
+op <- par(mfrow=c(2,2),oma=c(0,0,2,0),mar=c(5,4,1,1),cex.main=.9)
+barplot(marcador.table,main="Marcador",ylab="Frequência",legend.text=TRUE,
+        xlim=c(0, ncol(marcador.table) + 2))
+par(op)
+```
+
+**Cinco maiores valores para teor de marcador:**
+
+```{r marcador.2,echo=FALSE,cache=TRUE,warning=FALSE}
+marcador.dt[order(-Resultado)][1:5]
+```
+
+## Teor de Biodiesel
+
+Valores reportados como "<0.5" foram forçados para 0.
+
+```{r b100,echo=FALSE,cache=TRUE,warning=FALSE}
+##################################################
+# pmqc.un.dt[Ensaio.=="B100",unique(Resultado)]
+b100.dt <- pmqc.un.dt[Ensaio.=="B100",.(Id.text,Resultado),
+                        keyby=Grupo.produto]
+b100.dt[,Resultado:=gsub(">","",b100.dt[,Resultado])]
+b100.dt[,Resultado:=gsub("<","",b100.dt[,Resultado])]
+
+# sum(is.na(b100.dt))
+b100.dt[,Resultado:=as.numeric(Resultado)]
+b100.dt[is.na(Resultado),Resultado:=0]
+aggregate(b100.dt$Resultado,by=list(b100.dt$Grupo.produto),FUN=summary)
+
+op <- par(mfrow=c(2,2),oma=c(0,0,2,0),mar=c(5,4,1,1),cex.main=.9)
+hist(b100.dt[,Resultado],main="Teor de Biodiesel",xlab="% volume",
+     xlim=c(4,10),
+     breaks=seq(floor(min(b100.dt[,Resultado])),
+                ceiling(max(b100.dt[,Resultado])),length.out=90)
+     )
+par(op)
+```
+
+**Cinco maiores valores de teor de biodiesel:**
+
+```{r b100.2,echo=FALSE,cache=TRUE,warning=FALSE}
+b100.dt[order(-Resultado)][1:5]
+```
+
+**Cinco menores valores de teor de biodiesel:**
+
+```{r b100.3,echo=FALSE,cache=TRUE,warning=FALSE}
+b100.dt[order(Resultado)][1:5]
+```
+
+## Material Particulado
+
+```{r matpart,echo=FALSE,cache=TRUE,warning=FALSE}
+##################################################
+# pmqc.un.dt[Ensaio.=="MatPart",unique(Resultado)]
+matpart.dt <- pmqc.un.dt[Ensaio.=="MatPart",.(Id.text,Resultado),
+                          keyby=Grupo.produto]
+(matpart.table <- table(matpart.dt[,.(Grupo.produto,Resultado)]))
+op <- par(mfrow=c(2,2),oma=c(0,0,2,0),mar=c(5,4,1,1),cex.main=.9)
+barplot(matpart.table,main="Material Particulado",ylab="Frequência",legend.text=TRUE,
+        xlim=c(0, ncol(matpart.table) + 2))
+par(op)
+```
+
+\newpage
+
+# Gráficos de Dispersão
+
+```{r myplot1,echo=FALSE,cache=TRUE,warning=FALSE}
+library(lattice)
+col1 <- rgb(205,091,069,alpha=155,maxColorValue=255) #S500
+col2 <- rgb(255,195,015,alpha=155,maxColorValue=255) #S10
+col3 <- rgb(000,000,255,alpha=155,maxColorValue=255) #GCC-GCA
+col4 <- rgb(000,205,205,alpha=200,maxColorValue=255) #GCP
+
+tmp.eth <- unique(pmqc.dt[Grupo.produto=="Etanol",Ensaio.])
+myplot.1.dt <- pmqc.un.dt[Ensaio. %in% c("CElet","TAlc","ME20C") &
+                                  Grupo.produto=="Etanol",
+                          .(Ensaio.,Resultado),keyby=.(Id.numeric)]
+
+myplot.1.dt <- dcast(myplot.1.dt,Id.numeric~Ensaio.,value.var="Resultado")
+myplot.1.dt[,CElet:=as.numeric(CElet)]
+myplot.1.dt[,TAlc:=as.numeric(TAlc)]
+myplot.1.dt[,ME20C:=as.numeric(ME20C)]
+
+# str(myplot.1.dt)
+# sum(complete.cases(myplot.1.dt))
+
+# op <- par(mfrow=c(1,2),oma=c(2,0,2,0),mar=c(5,5,4,1),cex.main=.9)
+op <- par(mfrow=c(1,2),oma=c(0,0,0,0),mar=c(8,5,4,1),cex.main=.9)
+
+# pairs(myplot.1.dt[,2:4,with=FALSE])
+
+plot(myplot.1.dt[,ME20C],myplot.1.dt[,TAlc],
+     xlab=expression(paste("Massa Especifica, ",kg/m^3)),
+     ylab="Teor Alcoólico, % massa",
+     main="Teor alcoólico vs.\n Massa específica"
+     )
+
+plot(myplot.1.dt[,TAlc],myplot.1.dt[,CElet],
+     xlab="Teor Alcoólico, % massa",
+     ylab=expression(paste("Condutividade Elétrica, ",mu,"S/m")),
+     main="Condutividade elétrica vs.\n Teor alcoólico"
+     )
+
+par(op)
+```
+
+```{r myplot3,echo=FALSE,cache=TRUE,warning=FALSE,eval=FALSE}
+# op.lat <- lattice.options(
+#         layout.heights=list(bottom.padding=list(x=1),top.padding=list(x=1))
+#         )
+xyplot(ME20C ~ Dest | Produto, data = myplot.2.dt,
+       xlab="T10ev",ylab="ME20C")
+# lattice.options(op.lat)
+```
+
+\vspace{7mm}
+
+```{r myplot12,echo=FALSE,cache=TRUE,warning=FALSE}
+myplot.2.dt <- pmqc.un.dt[Componente=="Destilacao - 10% Evaporado" | 
+                                  Ensaio.=="ME20C",.(Ensaio.,Produto,Resultado),
+                          keyby=.(Id.numeric)]
+
+myplot.2.dt[Produto %in% c("GASOLINA C ADITIVADA","GASOLINA C COMUM"),
+      Produto:="GCC-GCA"]
+myplot.2.dt[Produto=="GASOLINA C PREMIUM",
+      Produto:="GCP"]
+
+myplot.2.dt <- dcast(myplot.2.dt,Id.numeric+Produto~Ensaio.,value.var="Resultado")
+myplot.2.dt <- myplot.2.dt[complete.cases(myplot.2.dt)]
+myplot.2.dt[,":="(Dest=as.numeric(myplot.2.dt[,Dest]),
+               ME20C=as.numeric(myplot.2.dt[,ME20C]))]
+
+## custom: ignore outlier, lowest value
+ttmp <- which(myplot.2.dt[,Dest]==min(myplot.2.dt[,Dest]))
+myplot.2.dt <- copy(myplot.2.dt[-ttmp])
+
+## custom: ignore outliers
+# ttmp <- which(myplot.2.dt[,Dest] %in% boxplot.stats(myplot.2.dt[,Dest])$out)
+# myplot.2.dt <- copy(myplot.2.dt[-ttmp])
+
+# ttmt <- which(myplot.2.dt[,ME20C] %in% boxplot.stats(myplot.2.dt[,ME20C])$out)
+# myplot.2.dt <- copy(myplot.2.dt[-ttmt])
+
+
+myplot.4.dt <- pmqc.un.dt[Componente=="Destilacao - 50% Evaporado" | 
+                                  Ensaio.=="ME20C",.(Ensaio.,Produto,Resultado),
+                          keyby=.(Id.numeric)]
+
+myplot.4.dt <- dcast(myplot.4.dt,Id.numeric+Produto~Ensaio.,value.var="Resultado")
+myplot.4.dt <- myplot.4.dt[complete.cases(myplot.4.dt)]
+myplot.4.dt[,":="(Dest=as.numeric(myplot.4.dt[,Dest]),
+                  ME20C=as.numeric(myplot.4.dt[,ME20C]))]
+
+myplot.4.dt[Produto %in% c("GASOLINA C COMUM","GASOLINA C ADITIVADA"),
+            Produto:="GCC-GCA"]
+myplot.4.dt[Produto=="GASOLINA C PREMIUM",
+            Produto:="GCP"]
+
+## custom: ignore outliers
+# ttmp <- which(myplot.4.dt[,Dest] %in% boxplot.stats(myplot.4.dt[,Dest])$out)
+# myplot.4.dt <- copy(myplot.4.dt[-ttmp])
+
+
+op <- par(mfrow=c(1,2),oma=c(0,0,0,0),mar=c(8,5,4,1),cex.main=.9)
+
+
+# plot(myplot.2.dt[,Dest],myplot.2.dt[,ME20C],xlab="T10",ylab="ME20C",
+#      main="ME20C vs.\n T10ev, GCC-GCA-GCP")
+plot(myplot.2.dt[Produto=="GCC-GCA",ME20C],
+     myplot.2.dt[Produto=="GCC-GCA",Dest],
+     ylab="",xlab="",
+     col=col3,pch=2,lwd=2,
+     main="T10ev vs. ME20C"
+     )
+points(myplot.2.dt[Produto=="GCP",ME20C],
+     myplot.2.dt[Produto=="GCP",Dest],
+     col=col4,pch=4,lwd=1.75
+     )
+mtext(side=1,text="ME20C",line=2.5)
+mtext(side=2,text="T10ev",line=2.5)
+# legend("bottom",inset=c(0,-.5),legend=c("GCC-GCA","GCP"),pch=c(6,0),
+#        col=c("blue","red"),horiz=TRUE,bty="n",xpd=TRUE)
+legend("bottom",inset=c(0,-.5),
+       legend=c("GCC-GCA","GCP"),pch=c(2,4),col=c(col3,col4),
+       lwd=c(2,1.75),lty=c(NA,NA),
+       horiz=TRUE,bty="n",xpd=TRUE,
+       x.intersp=0,xjust=1,yjust=0)
+
+plot(myplot.4.dt[Produto=="GCC-GCA",ME20C],
+     myplot.4.dt[Produto=="GCC-GCA",Dest],
+     xlab="",ylab="",
+     col=col3,pch=2,lwd=2,
+     main="T50ev vs. ME20C"
+     )
+points(myplot.4.dt[Produto=="GCP",ME20C],
+     myplot.4.dt[Produto=="GCP",Dest],
+     col=col4,pch=4,lwd=1.75
+     )
+mtext(side=1,text="ME20C",line=2.5)
+mtext(side=2,text="T50ev",line=2.5)
+legend("bottom",inset=c(0,-.5),
+       legend=c("GCC-GCA","GCP"),pch=c(2,4),col=c(col3,col4),
+       lwd=c(2,1.75),lty=c(NA,NA),
+       horiz=TRUE,bty="n",xpd=TRUE,
+       x.intersp=0,xjust=1,yjust=0
+       )
+
+# plot(myplot.4.dt[,Dest],myplot.4.dt[,ME20C],xlab="T50ev",ylab="ME20C")
+
+par(op)
+```
+
+\vspace{7mm}
+
+```{r myplot5,echo=FALSE,cache=TRUE,warning=FALSE}
+myplot.5.1.dt <- pmqc.un.dt[Componente=="Destilacao - 90% Evaporado" | 
+                                  Ensaio.=="ME20C",.(Ensaio.,Produto,Resultado),
+                          keyby=.(Id.numeric)]
+myplot.5.1.dt[Produto %in% c("GASOLINA C COMUM","GASOLINA C ADITIVADA"),
+            Produto:="GCC-GCA"]
+myplot.5.1.dt[Produto=="GASOLINA C PREMIUM",
+            Produto:="GCP"]
+
+myplot.5.1.dt <- dcast(myplot.5.1.dt,Id.numeric+Produto~Ensaio.,
+                       value.var="Resultado")
+myplot.5.1.dt <- myplot.5.1.dt[complete.cases(myplot.5.1.dt)]
+myplot.5.1.dt[,":="(Dest=as.numeric(myplot.5.1.dt[,Dest]),
+                  ME20C=as.numeric(myplot.5.1.dt[,ME20C]))]
+
+
+myplot.5.dt <- pmqc.un.dt[Componente=="Destilacao - PFE" | 
+                                  Ensaio.=="ME20C",.(Ensaio.,Produto,Resultado),
+                          keyby=.(Id.numeric)]
+myplot.5.dt[Produto %in% c("GASOLINA C COMUM","GASOLINA C ADITIVADA"),
+            Produto:="GCC-GCA"]
+myplot.5.dt[Produto=="GASOLINA C PREMIUM",
+            Produto:="GCP"]
+
+myplot.5.dt <- dcast(myplot.5.dt,Id.numeric+Produto~Ensaio.,value.var="Resultado")
+myplot.5.dt <- myplot.5.dt[complete.cases(myplot.5.dt)]
+myplot.5.dt[,":="(Dest=as.numeric(myplot.5.dt[,Dest]),
+                  ME20C=as.numeric(myplot.5.dt[,ME20C]))]
+
+
+op <- par(mfrow=c(1,2),oma=c(0,0,0,0),mar=c(8,5,4,1),cex.main=.9)
+plot(myplot.5.1.dt[Produto=="GCC-GCA",ME20C],
+     myplot.5.1.dt[Produto=="GCC-GCA",Dest],
+     xlab="",ylab="",
+     col=col3,pch=2,lwd=2,
+     main="T90ev vs. ME20C"
+     )
+points(myplot.5.1.dt[Produto=="GCP",ME20C],
+     myplot.5.1.dt[Produto=="GCP",Dest],
+     col=col4,pch=4,lwd=1.75
+     )
+mtext(side=1,text="ME20C",line=2.5)
+mtext(side=2,text="T90ev",line=2.5)
+legend("bottom",inset=c(0,-.5),
+       legend=c("GCC-GCA","GCP"),pch=c(2,4),col=c(col3,col4),
+       lwd=c(2,1.75),lty=c(NA,NA),
+       horiz=TRUE,bty="n",xpd=TRUE,
+       x.intersp=0,xjust=1,yjust=0
+       )
+
+
+# plot(myplot.5.dt[,Dest],myplot.5.dt[,ME20C],xlab="PFE",ylab="ME20C")
+plot(myplot.5.dt[Produto=="GCC-GCA",ME20C],
+     myplot.5.dt[Produto=="GCC-GCA",Dest],
+     xlab="",ylab="",
+     col=col3,pch=2,lwd=2,
+     main="PFE vs. ME20C"
+     )
+points(myplot.5.dt[Produto=="GCP",ME20C],
+     myplot.5.dt[Produto=="GCP",Dest],
+     col=col4,pch=4,lwd=1.75
+     )
+mtext(side=1,text="ME20C",line=2.5)
+mtext(side=2,text="PFE",line=2.5)
+legend("bottom",inset=c(0,-.5),
+       legend=c("GCC-GCA","GCP"),pch=c(2,4),col=c(col3,col4),
+       lwd=c(2,1.75),lty=c(NA,NA),
+       horiz=TRUE,bty="n",xpd=TRUE,
+       x.intersp=0,xjust=1,yjust=0
+       )
+
+# plot(myplot.6.dt[,Dest],myplot.6.dt[,TEth],xlab="T50",
+#      ylab="Teor de Etanol, % volume")
+par(op)
+```
+
+\vspace{7mm}
+
+```{r myplot6,echo=FALSE,cache=TRUE,warning=FALSE}
+myplot.7.dt <- pmqc.un.dt[Componente=="Destilacao - 10% Evaporado" | 
+                                  Ensaio.=="TEth",.(Ensaio.,Produto,Resultado),
+                          keyby=.(Id.numeric)]
+myplot.7.dt[Produto %in% c("GASOLINA C COMUM","GASOLINA C ADITIVADA"),
+            Produto:="GCC-GCA"]
+myplot.7.dt[Produto=="GASOLINA C PREMIUM",
+            Produto:="GCP"]
+
+myplot.7.dt <- dcast(myplot.7.dt,Id.numeric+Produto~Ensaio.,value.var="Resultado")
+myplot.7.dt <- myplot.7.dt[complete.cases(myplot.7.dt)]
+myplot.7.dt[,":="(Dest=as.numeric(myplot.7.dt[,Dest]),
+                  TEth=as.numeric(myplot.7.dt[,TEth]))]
+
+## custom: ignore outlier, lowest value
+ttmp <- which(myplot.7.dt[,Dest]==min(myplot.7.dt[,Dest]))
+myplot.7.dt <- copy(myplot.7.dt[-ttmp])
+
+myplot.6.dt <- pmqc.un.dt[Componente=="Destilacao - 50% Evaporado" | 
+                                  Ensaio.=="TEth",.(Ensaio.,Produto,Resultado),
+                          keyby=.(Id.numeric)]
+myplot.6.dt[Produto %in% c("GASOLINA C COMUM","GASOLINA C ADITIVADA"),
+            Produto:="GCC-GCA"]
+myplot.6.dt[Produto=="GASOLINA C PREMIUM",
+            Produto:="GCP"]
+
+myplot.6.dt <- dcast(myplot.6.dt,Id.numeric+Produto~Ensaio.,value.var="Resultado")
+myplot.6.dt <- myplot.6.dt[complete.cases(myplot.6.dt)]
+myplot.6.dt[,":="(Dest=as.numeric(myplot.6.dt[,Dest]),
+                  TEth=as.numeric(myplot.6.dt[,TEth]))]
+
+op <- par(mfrow=c(1,2),oma=c(0,0,0,0),mar=c(8,5,4,1),cex.main=.9)
+# plot(myplot.7.dt[,Dest],myplot.7.dt[,TEth],xlab="T10",
+#      ylab="Teor de Etanol, % volume")
+plot(myplot.7.dt[Produto=="GCC-GCA",TEth],
+     myplot.7.dt[Produto=="GCC-GCA",Dest],
+     xlab="",ylab="",
+     col=col3,pch=2,lwd=2,
+     main="T10ev vs. Teor de Etanol"
+     )
+points(myplot.7.dt[Produto=="GCP",TEth],
+     myplot.7.dt[Produto=="GCP",Dest],
+     col=col4,pch=4,lwd=1.75
+     )
+mtext(side=1,text="Teor de etanol, % volume",line=2.5)
+mtext(side=2,text="T10ev",line=2.5)
+legend("bottom",inset=c(0,-.5),
+       legend=c("GCC-GCA","GCP"),pch=c(2,4),col=c(col3,col4),
+       lwd=c(2,1.75),lty=c(NA,NA),
+       horiz=TRUE,bty="n",xpd=TRUE,
+       x.intersp=0,xjust=1,yjust=0
+       )
+
+plot(myplot.6.dt[Produto=="GCC-GCA",TEth],
+     myplot.6.dt[Produto=="GCC-GCA",Dest],
+     xlab="",ylab="",
+     col=col3,pch=2,lwd=2,
+     main="T50ev vs. Teor de Etanol"
+     )
+points(myplot.6.dt[Produto=="GCP",TEth],
+     myplot.6.dt[Produto=="GCP",Dest],
+     col=col4,pch=4,lwd=1.75
+     )
+mtext(side=1,text="Teor de etanol, % volume",line=2.5)
+mtext(side=2,text="T50ev",line=2.5)
+legend("bottom",inset=c(0,-.5),
+       legend=c("GCC-GCA","GCP"),pch=c(2,4),col=c(col3,col4),
+       lwd=c(2,1.75),lty=c(NA,NA),
+       horiz=TRUE,bty="n",xpd=TRUE,
+       x.intersp=0,xjust=1,yjust=0
+       )
+par(op)
+```
+
+\vspace{7mm}
+
+```{r myplot61,echo=FALSE,cache=TRUE,warning=FALSE}
+myplot.7.1.dt <- pmqc.un.dt[Ensaio.=="Dest",
+                            .(Componente,Produto,Resultado),keyby=.(Id.numeric)]
+myplot.7.1.dt[Produto %in% c("GASOLINA C COMUM","GASOLINA C ADITIVADA"),
+            Produto:="GCC-GCA"]
+myplot.7.1.dt[Produto=="GASOLINA C PREMIUM",
+            Produto:="GCP"]
+myplot.7.1.dt[Produto %in% c("OLEO DIESEL B S500 COMUM",
+                           "OLEO DIESEL B S500 ADITIVADO"),
+            Produto:="DIESEL B S500"]
+myplot.7.1.dt[Produto %in% c("OLEO DIESEL B S10 COMUM",
+                           "OLEO DIESEL B S10 ADITIVADO"),
+            Produto:="DIESEL B S10"]
+
+myplot.7.1.dt <- dcast(myplot.7.1.dt,Id.numeric+Produto~Componente,
+                       value.var="Resultado")
+# myplot.7.1.dt <- myplot.7.1.dt[complete.cases(myplot.7.1.dt)]
+# myplot.7.1.dt[,":="(Dest=as.numeric(myplot.7.1.dt[,Dest]),
+#                   TEth=as.numeric(myplot.7.1.dt[,TEth]))]
+
+for(ii in 3:ncol(myplot.7.1.dt)) {
+        tmp.name <- as.name(names(myplot.7.1.dt)[3])
+        set(myplot.7.1.dt,j=ii,value=as.numeric(myplot.7.1.dt[[ii]]))
+}
+
+## custom: ignore outlier, lowest value
+ttmp <- which(myplot.7.1.dt[,`Destilacao - 10% Evaporado`]==min(myplot.7.1.dt[,`Destilacao - 10% Evaporado`],na.rm=TRUE))
+myplot.7.1.dt <- copy(myplot.7.1.dt[-ttmp])
+
+op <- par(mfrow=c(1,2),oma=c(0,0,0,0),mar=c(8,5,4,1),cex.main=.9)
+# plot(myplot.7.1.dt[,Dest],myplot.7.1.dt[,TEth],xlab="T10",
+#      ylab="Teor de Etanol, % volume")
+plot(myplot.7.1.dt[Produto=="GCC-GCA",`Destilacao - 10% Evaporado`],
+     myplot.7.1.dt[Produto=="GCC-GCA",`Destilacao - 50% Evaporado`],
+     xlab="",ylab="",
+     col=col3,pch=2,lwd=2,
+     main="T50ev vs. T10ev"
+     )
+points(myplot.7.1.dt[Produto=="GCP",`Destilacao - 10% Evaporado`],
+     myplot.7.1.dt[Produto=="GCP",`Destilacao - 50% Evaporado`],
+     col=col4,pch=4,lwd=1.75
+     )
+mtext(side=1,text="T10ev",line=2.5)
+mtext(side=2,text="T50ev",line=2.5)
+legend("bottom",inset=c(0,-.5),
+       legend=c("GCC-GCA","GCP"),pch=c(2,4),col=c(col3,col4),
+       lwd=c(2,1.75),lty=c(NA,NA),
+       horiz=TRUE,bty="n",xpd=TRUE,
+       x.intersp=0,xjust=1,yjust=0
+       )
+
+plot(myplot.7.1.dt[Produto=="GCC-GCA",`Destilacao - 10% Evaporado`],
+     myplot.7.1.dt[Produto=="GCC-GCA",`Destilacao - 90% Evaporado`],
+     xlab="",ylab="",
+     col=col3,pch=2,lwd=2,
+     main="T90ev vs. T10ev"
+     )
+points(myplot.7.1.dt[Produto=="GCP",`Destilacao - 10% Evaporado`],
+     myplot.7.1.dt[Produto=="GCP",`Destilacao - 90% Evaporado`],
+     col=col4,pch=4,lwd=1.75
+     )
+mtext(side=1,text="T10ev",line=2.5)
+mtext(side=2,text="T90ev",line=2.5)
+legend("bottom",inset=c(0,-.5),
+       legend=c("GCC-GCA","GCP"),pch=c(2,4),col=c(col3,col4),
+       lwd=c(2,1.75),lty=c(NA,NA),
+       horiz=TRUE,bty="n",xpd=TRUE,
+       x.intersp=0,xjust=1,yjust=0
+       )
+par(op)
+```
+
+\vspace{7mm}
+
+```{r myplot4,echo=FALSE,cache=TRUE,warning=FALSE}
+# ME20C vs B100
+col1 <- rgb(205,091,069,alpha=155,maxColorValue=255) #S500
+col2 <- rgb(255,195,015,alpha=155,maxColorValue=255) #S10
+myplot.3.dt <- pmqc.un.dt[Ensaio. %in% c("B100","ME20C","Fulgor"),
+                          .(Ensaio.,Produto,Resultado),keyby=.(Id.numeric)]
+
+myplot.3.dt[Produto %in% c("OLEO DIESEL B S500 COMUM",
+                           "OLEO DIESEL B S500 ADITIVADO"),
+            Produto:="DIESEL B S500"]
+myplot.3.dt[Produto %in% c("OLEO DIESEL B S10 COMUM",
+                           "OLEO DIESEL B S10 ADITIVADO"),
+            Produto:="DIESEL B S10"]
+
+myplot.3.dt <- dcast(myplot.3.dt,Id.numeric+Produto~Ensaio.,value.var="Resultado")
+# sum(is.na(myplot.3.dt[,B100]))
+# myplot.3.dt[is.na(B100),B100:=0]
+myplot.3.dt <- myplot.3.dt[complete.cases(myplot.3.dt)]
+myplot.3.dt[,":="(B100=as.numeric(myplot.3.dt[,B100]),
+                  ME20C=as.numeric(myplot.3.dt[,ME20C]),
+                  Fulgor=as.numeric(myplot.3.dt[,Fulgor]))]
+
+
+# op <- par(mfrow=c(1,2),oma=c(2,0,2,0),mar=c(5,5,4,1),cex.main=.9)
+op <- par(mfrow=c(1,2),oma=c(0,0,0,0),mar=c(8,5,4,1),cex.main=.9)
+# plot(0,0,type="n",bty="n",xaxt="n",yaxt="n")
+# plot(myplot.3.dt[Produto=="DIESEL B S500",ME20C],
+#      myplot.3.dt[Produto=="DIESEL B S500",B100],
+#      ylab="",xlab="",col="blue",pch=6,
+#      main="Teor de biodiesel vs.\n ME20C")
+plot(myplot.3.dt[Produto=="DIESEL B S500",ME20C],
+     myplot.3.dt[Produto=="DIESEL B S500",B100],
+     ylab="",xlab="",
+     col=col1,pch=6,lwd=2,
+     main="Teor de biodiesel vs. ME20C"
+     )
+# points(myplot.3.dt[Produto=="DIESEL B S10",ME20C],
+#      myplot.3.dt[Produto=="DIESEL B S10",B100],
+#      ylab="B100",xlab="ME20C",col="red",pch=0)
+points(myplot.3.dt[Produto=="DIESEL B S10",ME20C],
+     myplot.3.dt[Produto=="DIESEL B S10",B100],
+     col=col2,pch=3,lwd=1.75
+     )
+mtext(side=1,text="ME20C",line=2.5)
+mtext(side=2,text="B100",line=2.5)
+legend("bottom",inset=c(0,-.5),
+       legend=c("S500","S10"),pch=c(6,3),col=c(col1,col2),
+       lwd=c(2,1.75),lty=c(NA,NA),
+       horiz=TRUE,bty="n",xpd=TRUE,
+       x.intersp=0,xjust=1,yjust=0
+       )
+
+plot(myplot.3.dt[Produto=="DIESEL B S500",ME20C],
+     myplot.3.dt[Produto=="DIESEL B S500",Fulgor],
+     ylab="",xlab="",
+     col=col1,pch=6,lwd=2,
+     main="Ponto de Fulgor vs. ME20C"
+     )
+
+points(myplot.3.dt[Produto=="DIESEL B S10",ME20C],
+     myplot.3.dt[Produto=="DIESEL B S10",Fulgor],
+     col=col2,pch=3,lwd=1.75
+     )
+mtext(side=1,text="ME20C",line=2.5)
+mtext(side=2,text="Ponto de Fulgor",line=2.5)
+legend("bottom",inset=c(0,-.5),
+       legend=c("S500","S10"),pch=c(6,3),col=c(col1,col2),
+       lwd=c(2,1.75),lty=c(NA,NA),
+       horiz=TRUE,bty="n",xpd=TRUE,
+       x.intersp=0,xjust=1,yjust=0
+       )
+
+par(op)
+```
+
+\vspace{7mm}
+
+```{r myplotpairsg,echo=FALSE,cache=TRUE,warning=FALSE}
+pairs(myplot.7.1.dt[Produto %in% c("GCC-GCA","GCP")
+                    ][,c(3L,5L,8L,11L),with=FALSE],
+      main="Destilação: Gasolina",
+      na.action=na.omit)
+```
+
+\vspace{7mm}
+
+```{r myplotpairsd,echo=FALSE,cache=TRUE,warning=FALSE}
+pairs(myplot.7.1.dt[Produto %in% c("DIESEL B S10","DIESEL B S500")
+                    ][,c(4L,6L,7L,9L,10L),with=FALSE],
+      main="Destilação: Diesel",
+      na.action=na.omit)
+```
+
+```{r plots,eval=FALSE,echo=FALSE}
+##################################################
+
+# pmqc.un.dt[Ensaio.=="AguaLivre",unique(Resultado)]
+# agualivre.dt <- pmqc.un.dt[Ensaio.=="AguaLivre",as.numeric(Resultado),
+#                       keyby=Produto]
+# 
+# # sum(is.na(agualivre.dt))
+# # agualivre.dt[is.na(V1),V1:=0]
+# aggregate(agualivre.dt$V1,by=list(agualivre.dt$Produto),FUN=summary)
+# 
+# prods <- agualivre.dt[,unique(Produto)]
+# for(i in prods) {
+#         hist(agualivre.dt[Produto==i,V1],main=paste("Agua Livre:",i),
+#              xlab="Agua Livre, % volume")
+# }
+
+
+##################################################
+####                  Plots                   ####
+##################################################
+
+
+
+##################################################
+
+
+
+##################################################
+
+
+
+
+
+xyplot(B100~ME20C | Produto, data = myplot.3.dt, layout = c(4, 1),
+       xlab="B100",ylab="ME20C")
+
+##################################################
+
+
+
+
+
+xyplot(ME20C ~ Dest | Produto, data = myplot.4.dt, layout = c(3, 1),
+       xlab="T50",ylab="ME20C")
+
+##################################################
+
+
+# xyplot(ME20C ~ Dest | Produto, data = myplot.5.dt, layout = c(3, 1),
+#        xlab="PFE",ylab="ME20C")
+
+xyplot(Dest~ME20C | Produto, data = myplot.5.dt, layout = c(3, 1),
+       ylab="PFE",xlab="ME20C")
+
+##################################################
+
+
+
+xyplot(TEth ~ Dest | Produto, data = myplot.6.dt, layout = c(3, 1),
+       xlab="T50",ylab="Teor de Etanol, % volume")
+
+##################################################
+
+
+xyplot(TEth ~ Dest | Produto, data = myplot.7.dt, layout = c(3, 1),
+       xlab="T10",ylab="Teor de Etanol, % volume")
+```
+
+
+```{r spurious,cache=TRUE,echo=FALSE,warning=FALSE,eval=FALSE}
+##################################################
+####             Spurious Data                ####
+##################################################
+
+# CElet=2417.0 (Digitacao?)
+myplot.1.dt[,.(Id.numeric,CElet)][order(as.numeric(CElet))]
+pmqc.dt[Id.numeric=="213392"] 
+
+# TAlc
+myplot.1.dt[,.(Id.numeric,TAlc)][order(as.numeric(TAlc))]
+pmqc.dt[Id.numeric %in% c("216364","216214","217338")]
+
+myplot.2.dt[,.(Id.numeric,Dest)][order(Dest)]
+myplot.2.dt[,.(Id.numeric,ME20C)][order(ME20C)]
+# T10=69.7, ME20C=786.0 (Teor Eth=76%)
+pmqc.dt[Id.numeric=="214482" & Componente=="Destilacao - 10% Evaporado"]
+pmqc.dt[Id.numeric=="214482"]
+# T10=61.6 (OK: <65.0)
+pmqc.dt[Id.numeric=="217507"]
+pmqc.dt[Id.numeric=="217507" & Componente=="Destilacao - 10% Evaporado"]
+# T10=45.8 (Gasolina Premium)
+pmqc.dt[Id.numeric=="215956"]
+pmqc.dt[Id.numeric=="215956" & Componente=="Destilacao - 10% Evaporado"]
+
+
+myplot.4.dt[,.(Id.numeric,Dest)][order(Dest)]
+# T50=98.3 (TEth = 8%)
+pmqc.dt[Id.numeric=="216398"]
+pmqc.dt[Id.numeric=="216398" & Componente=="Destilacao - 50% Evaporado"]
+
+myplot.5.dt[,.(Id.numeric,Dest)][order(Dest)]
+# PFE=332.1
+pmqc.dt[Id.numeric=="214503"]
+pmqc.dt[Id.numeric=="214503" & Componente=="Destilacao - 50% Evaporado"]
+```
+
