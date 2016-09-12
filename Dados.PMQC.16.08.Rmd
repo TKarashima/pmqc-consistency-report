@@ -1,5 +1,5 @@
 ---
-title: "Dados PMQC - Julho 2016"
+title: "Dados PMQC - Agosto 2016"
 author: ""
 date: ""
 output: pdf_document
@@ -8,8 +8,8 @@ classoption: a4paper
 
 ```{r data.loading.2,cache=TRUE,echo=FALSE,warning=FALSE}
 library(data.table)
-mypath.1 <- "/Volumes/NO NAME/ExplAnalysis_PMQC/Dados.PMQC.16.07.pmqc.dt.csv"
-mypath.2 <- "/Volumes/NO NAME/ExplAnalysis_PMQC/Dados.PMQC.16.07.pmqc.un.dt.csv"
+mypath.1 <- "/Volumes/NO NAME/ExplAnalysis_PMQC/Dados.PMQC.16.08.pmqc.dt.csv"
+mypath.2 <- "/Volumes/NO NAME/ExplAnalysis_PMQC/Dados.PMQC.16.08.pmqc.un.dt.csv"
 pmqc.dt <- fread(mypath.1,header=T,check.names=T) # na.strings="NA"
 pmqc.un.dt <- fread(mypath.2,header=T,check.names=T) # na.strings="NA"
 ```
