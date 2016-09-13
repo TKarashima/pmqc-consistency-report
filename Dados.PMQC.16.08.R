@@ -8,6 +8,10 @@ mypath <- paste0(pmqc.path,pmqc.file,".csv")
 cclass <- rep("character",23)
 pmqc.dt <- fread(mypath,header=T,na.strings="",select=c(1:7,12:23),
                  check.names=T,colClasses=cclass,encoding="Latin-1")
+# pmqc.dt <- fread(mypath,header=T,na.strings="",select=c(1:7,12:23),
+#                  check.names=T,colClasses=cclass,encoding="UTF-8")
+# pmqc.dt <- fread(mypath,header=T,na.strings="",select=c(1:7,12:23),
+#                  check.names=T,colClasses=cclass)
 names(pmqc.dt) <- make.names(names(pmqc.dt))
 # Eliminating special characters and diacritical marks (accents)
 pmqc.dt[,Nao.conforme:=stri_trans_general(pmqc.dt[,Nao.conforme],"Latin-ASCII")]
@@ -21,6 +25,7 @@ pmqc.dt[,Id.text:=stri_trans_general(pmqc.dt[,Id.text],"Latin-ASCII")]
 pmqc.dt[,Localidade:=stri_trans_general(pmqc.dt[,Localidade],"Latin-ASCII")]
 pmqc.dt[,Posto:=stri_trans_general(pmqc.dt[,Posto],"Latin-ASCII")]
 pmqc.dt[,Produto:=stri_trans_general(pmqc.dt[,Produto],"Latin-ASCII")]
+# pmqc.dt[,Produto:=stri_trans_general(pmqc.dt[,Produto],"Any-Hex/Unicode")]
 pmqc.dt[,Regiao:=stri_trans_general(pmqc.dt[,Regiao],"Latin-ASCII")]
 
 # ensaios.dt <- data.table(Componente=pmqc.dt[,unique(Componente)],
@@ -43,13 +48,13 @@ x33 <- c("Aspecto","Condutividade Eletrica","Cor","Massa Especifica a 20ºC",
          "Destilacao - 85% Recuperados","Destilacao - 90% Recuperados",
          "Teor de Enxofre (D4294)","Ponto de Fulgor (D56)","Cor ASTM",
          "Teor de Enxofre (D5453)","Teor de Enxofre","Aromatico","Benzeno",
-         "IAD","MON","Olefina","RON","Saturado")
+         "IAD","MON","Olefina","RON","Saturado","Numero de Cetano Derivado")
 
 x42 <- c("Aspecto","CElet","Cor","ME20C","MatPart","pH","TAlc","THC","TMet",
          "AguaLivre","Dest","Dest","Dest","Dest","Dest","Dest","ME20C","TEth",
          "Marcador","Dest","Dest","Dest","ME20C","Fulgor","B100","Dest","Dest",
          "Enxofre","Fulgor","CorASTM","Enxofre","Enxofre","Aromatico","Benzeno",
-         "IAD","MON","Olefina","RON","Saturado")
+         "IAD","MON","Olefina","RON","Saturado","Cetano")
 
 ensaios.dt <- data.table(Componente=x33,Ensaio.=x42)
 
