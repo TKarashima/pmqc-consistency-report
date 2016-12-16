@@ -5,7 +5,7 @@ date: ""
 output: pdf_document
 classoption: a4paper
 ---
-
+.
 ```{r data.loading.2,cache=TRUE,echo=FALSE,warning=FALSE}
 library(data.table)
 mypath.1 <- "/Volumes/NO NAME/ExplAnalysis_PMQC/Dados.PMQC.16.08.pmqc.dt.csv"
