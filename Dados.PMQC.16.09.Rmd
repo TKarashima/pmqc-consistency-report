@@ -1,15 +1,15 @@
 ---
-title: "Dados PMQC - Agosto 2016"
+title: "Dados PMQC - Setembro 2016"
 author: ""
 date: ""
 output: pdf_document
 classoption: a4paper
 ---
-.
+
 ```{r data.loading.2,cache=TRUE,echo=FALSE,warning=FALSE}
 library(data.table)
-mypath.1 <- "/Volumes/NO NAME/ExplAnalysis_PMQC/Dados.PMQC.16.08.pmqc.dt.csv"
-mypath.2 <- "/Volumes/NO NAME/ExplAnalysis_PMQC/Dados.PMQC.16.08.pmqc.un.dt.csv"
+mypath.1 <- "/Volumes/NO NAME/ExplAnalysis_PMQC/Dados.PMQC.16.09.pmqc.dt.csv"
+mypath.2 <- "/Volumes/NO NAME/ExplAnalysis_PMQC/Dados.PMQC.16.09.pmqc.un.dt.csv"
 pmqc.dt <- fread(mypath.1,header=T,check.names=T) # na.strings="NA"
 pmqc.un.dt <- fread(mypath.2,header=T,check.names=T) # na.strings="NA"
 ```
@@ -747,18 +747,18 @@ hist(me.dt[Produto=="ETANOL",V1],main="ETANOL",
 par(op)
 ```
 
-**Dez maiores valores de ME20C para GCP:**
+**Dez maiores valores de ME20C para GCC-GCA:**
 
 ```{r ME20C.gcp,echo=FALSE,cache=TRUE,warning=FALSE}
 pmqc.un.dt[Ensaio. == "ME20C" &
-                   Produto == "GASOLINA C PREMIUM",][order(-as.numeric(Resultado)),.(Contratada,Id.text,Resultado)][1:10,]
+                   Produto %in% c("GASOLINA C ADITIVADA","GASOLINA C COMUM"),][order(-as.numeric(Resultado)),.(Contratada,Id.text,Resultado)][1:10,]
 ```
 
-**Dez maiores valores de ME20C para Etanol:**
+**Dez menores valores de ME20C para Etanol:**
 
 ```{r ME20C.eth,echo=FALSE,cache=TRUE,warning=FALSE}
 pmqc.un.dt[Ensaio. == "ME20C" &
-                   Grupo.produto == "Etanol",][order(-as.numeric(Resultado)),.(Contratada,Id.text,Resultado)][1:10,]
+                   Grupo.produto == "Etanol",][order(as.numeric(Resultado)),.(Contratada,Id.text,Resultado)][1:10,]
 ```
 
 ## Teor Alcoólico
@@ -1166,6 +1166,10 @@ myplot.1.dt[,ME20C:=as.numeric(ME20C)]
 # str(myplot.1.dt)
 # sum(complete.cases(myplot.1.dt))
 
+# custom: ignore outlier, lowest value
+ttmp <- which(myplot.1.dt[,ME20C]==min(myplot.1.dt[,ME20C]))
+myplot.1.dt <- copy(myplot.1.dt[-ttmp])
+
 # op <- par(mfrow=c(1,2),oma=c(2,0,2,0),mar=c(5,5,4,1),cex.main=.9)
 op <- par(mfrow=c(1,2),oma=c(0,0,0,0),mar=c(8,5,4,1),cex.main=.9)
 
@@ -1213,8 +1217,8 @@ myplot.2.dt[,":="(Dest=as.numeric(myplot.2.dt[,Dest]),
                ME20C=as.numeric(myplot.2.dt[,ME20C]))]
 
 ## custom: ignore outlier, lowest value
-# ttmp <- which(myplot.2.dt[,Dest]==min(myplot.2.dt[,Dest]))
-# myplot.2.dt <- copy(myplot.2.dt[-ttmp])
+ttmp <- which(myplot.2.dt[,ME20C]==max(myplot.2.dt[,ME20C]))
+myplot.2.dt <- copy(myplot.2.dt[-ttmp])
 
 ## custom: ignore outliers
 # ttmp <- which(myplot.2.dt[,Dest] %in% boxplot.stats(myplot.2.dt[,Dest])$out)
@@ -1241,6 +1245,10 @@ myplot.4.dt[Produto=="GASOLINA C PREMIUM",
 ## custom: ignore outliers
 # ttmp <- which(myplot.4.dt[,Dest] %in% boxplot.stats(myplot.4.dt[,Dest])$out)
 # myplot.4.dt <- copy(myplot.4.dt[-ttmp])
+
+## custom: ignore outlier, lowest value
+ttmp <- which(myplot.4.dt[,ME20C]==max(myplot.4.dt[,ME20C]))
+myplot.4.dt <- copy(myplot.4.dt[-ttmp])
 
 
 op <- par(mfrow=c(1,2),oma=c(0,0,0,0),mar=c(8,5,4,1),cex.main=.9)
@@ -1309,6 +1317,10 @@ myplot.5.1.dt <- myplot.5.1.dt[complete.cases(myplot.5.1.dt)]
 myplot.5.1.dt[,":="(Dest=as.numeric(myplot.5.1.dt[,Dest]),
                   ME20C=as.numeric(myplot.5.1.dt[,ME20C]))]
 
+## custom: ignore outlier, lowest value
+ttmp <- which(myplot.5.1.dt[,ME20C]==max(myplot.5.1.dt[,ME20C]))
+myplot.5.1.dt <- copy(myplot.5.1.dt[-ttmp])
+
 
 myplot.5.dt <- pmqc.un.dt[Componente=="Destilacao - PFE" | 
                                   Ensaio.=="ME20C",.(Ensaio.,Produto,Resultado),
@@ -1323,6 +1335,9 @@ myplot.5.dt <- myplot.5.dt[complete.cases(myplot.5.dt)]
 myplot.5.dt[,":="(Dest=as.numeric(myplot.5.dt[,Dest]),
                   ME20C=as.numeric(myplot.5.dt[,ME20C]))]
 
+## custom: ignore outlier, lowest value
+ttmp <- which(myplot.5.dt[,ME20C]==max(myplot.5.dt[,ME20C]))
+myplot.5.dt <- copy(myplot.5.dt[-ttmp])
 
 op <- par(mfrow=c(1,2),oma=c(0,0,0,0),mar=c(8,5,4,1),cex.main=.9)
 plot(myplot.5.1.dt[Produto=="GCC-GCA",ME20C],
@@ -1711,4 +1726,3 @@ myplot.5.dt[,.(Id.numeric,Dest)][order(Dest)]
 pmqc.dt[Id.numeric=="214503"]
 pmqc.dt[Id.numeric=="214503" & Componente=="Destilacao - 50% Evaporado"]
 ```
-
