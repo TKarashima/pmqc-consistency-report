@@ -1474,8 +1474,8 @@ for(ii in 3:ncol(myplot.7.1.dt)) {
 }
 
 ## custom: ignore outlier, lowest value
-# ttmp <- which(myplot.7.1.dt[,`Destilacao - 10% Evaporado`]==min(myplot.7.1.dt[,`Destilacao - 10% Evaporado`],na.rm=TRUE))
-# myplot.7.1.dt <- copy(myplot.7.1.dt[-ttmp])
+ttmp <- which(myplot.7.1.dt[,`Destilacao - 50% Evaporado`]==min(myplot.7.1.dt[,`Destilacao - 50% Evaporado`],na.rm=TRUE))
+myplot.7.1.dt <- copy(myplot.7.1.dt[-ttmp])
 
 op <- par(mfrow=c(1,2),oma=c(0,0,0,0),mar=c(8,5,4,1),cex.main=.9)
 # plot(myplot.7.1.dt[,Dest],myplot.7.1.dt[,TEth],xlab="T10",
@@ -1609,6 +1609,7 @@ pairs(myplot.7.1.dt[Produto %in% c("GCC-GCA","GCP")
 ```
 
 \vspace{7mm}
+
 
 ```{r myplotpairsd,echo=FALSE,cache=TRUE,warning=FALSE}
 pairs(myplot.7.1.dt[Produto %in% c("DIESEL B S10","DIESEL B S500")
