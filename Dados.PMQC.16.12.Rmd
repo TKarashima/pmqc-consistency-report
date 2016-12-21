@@ -1,5 +1,5 @@
 ---
-title: "Dados PMQC - Setembro 2016"
+title: "Dados PMQC - Dezembro 2016"
 author: ""
 date: ""
 output: pdf_document
@@ -8,8 +8,9 @@ classoption: a4paper
 
 ```{r data.loading.2,cache=TRUE,echo=FALSE,warning=FALSE}
 library(data.table)
-mypath.1 <- "/Volumes/NO NAME/ExplAnalysis_PMQC/Dados.PMQC.16.09.pmqc.dt.csv"
-mypath.2 <- "/Volumes/NO NAME/ExplAnalysis_PMQC/Dados.PMQC.16.09.pmqc.un.dt.csv"
+library(lattice)
+mypath.1 <- "/Volumes/NO NAME/ExplAnalysis_PMQC/Dados.PMQC.16.12.pmqc.dt.csv"
+mypath.2 <- "/Volumes/NO NAME/ExplAnalysis_PMQC/Dados.PMQC.16.12.pmqc.un.dt.csv"
 pmqc.dt <- fread(mypath.1,header=T,check.names=T) # na.strings="NA"
 pmqc.un.dt <- fread(mypath.2,header=T,check.names=T) # na.strings="NA"
 ```
@@ -252,22 +253,6 @@ for(i in prods) {
 par(op)
 ```
 
-**Cinco menores valores de T10ev:**
-
-```{r T10ev.2,echo=FALSE,cache=TRUE,warning=FALSE}
-pmqc.un.dt[Componente=="Destilacao - 10% Evaporado",
-           ][order(as.numeric(Resultado)),.(Id.text,Resultado)
-             ][1:5,]
-```
-
-**Cinco maiores valores de T10ev:**
-
-```{r T10ev.3,echo=FALSE,cache=TRUE,warning=FALSE}
-pmqc.un.dt[Componente=="Destilacao - 10% Evaporado",
-           ][order(-as.numeric(Resultado)),.(Id.text,Resultado)
-             ][1:5,]
-```
-
 ## Destilação: 50% Evaporados
 
 ```{r T50ev,echo=FALSE,cache=TRUE,warning=FALSE}
@@ -296,11 +281,11 @@ for(i in prods) {
 par(op)
 ```
 
-**Cinco maiores valores de T50ev:**
+**Cinco menores valores de T50ev:**
 
 ```{r T50ev.2,echo=FALSE,cache=TRUE,warning=FALSE}
 pmqc.un.dt[Componente=="Destilacao - 50% Evaporado",
-           ][order(-as.numeric(Resultado)),.(Id.text,Resultado)
+           ][order(as.numeric(Resultado)),.(Id.text,Resultado)
              ][1:5,]
 ```
 
@@ -334,20 +319,12 @@ for(i in prods) {
 par(op)
 ```
 
-**Cinco maiores valores de T90ev:**
+**Vinte menores valores de T90ev:**
 
 ```{r T90ev.2,echo=FALSE,cache=TRUE,warning=FALSE}
 pmqc.un.dt[Componente=="Destilacao - 90% Evaporado",
-           ][order(-as.numeric(Resultado)),.(Id.text,Resultado,Produto)
-             ][1:5,]
-```
-
-**Dez maiores valores de T90ev para GCP:**
-
-```{r T90ev.3,echo=FALSE,cache=TRUE,warning=FALSE}
-pmqc.un.dt[Componente=="Destilacao - 90% Evaporado" & Produto=="GASOLINA C PREMIUM",
-           ][order(-as.numeric(Resultado)),.(Id.text,Resultado,Produto)
-             ][1:10,]
+           ][order(as.numeric(Resultado)),.(Id.text,Resultado,Produto)
+             ][1:20,]
 ```
 
 ## Destilação: PFE
@@ -376,15 +353,17 @@ for(i in prods) {
              breaks=seq(floor(min(pfe.dt[,V1])),
                         ceiling(max(pfe.dt[,V1])),length.out=120))
 }
+# boxplot(V1~Contratada,data=pfe.dt,las=2)
 par(op)
+bwplot(V1~Contratada|Produto,data=pfe.dt)
 ```
 
-**Cinco maiores valores de PFE:**
+**Dez menores valores de PFE:**
 
 ```{r PFE.2,echo=FALSE,cache=TRUE,warning=FALSE}
 pmqc.un.dt[Componente=="Destilacao - PFE",
-           ][order(-as.numeric(Resultado)),.(Id.text,Resultado,Produto)
-             ][1:5,]
+           ][order(as.numeric(Resultado)),.(Id.text,Resultado,Produto)
+             ][1:10,]
 ```
 
 ## Destilação: Resíduo
@@ -425,6 +404,7 @@ pmqc.un.dt[Componente=="Destilacao - Residuo",
 ```
 
 ## Destilação: Perda
+Reportado apenas pelo CPT.
 
 ```{r perda,echo=FALSE,cache=TRUE,warning=FALSE}
 ##################################################
@@ -453,21 +433,13 @@ for(i in prods) {
 par(op)
 ```
 
-**Cinco maiores valores de perda:**
-
-```{r perda.2,echo=FALSE,cache=TRUE,warning=FALSE}
-pmqc.un.dt[Componente=="Destilacao - Perda",
-           ][order(-as.numeric(Resultado)),.(Id.text,Resultado,Produto)
-             ][1:5,]
-```
-
 ## Destilação: 10% Recuperados
 
 ```{r T10rec,echo=FALSE,cache=TRUE,warning=FALSE}
 ##################################################
 
 t10rec.dt <- pmqc.un.dt[Componente=="Destilacao - 10% Recuperados",
-                       as.numeric(Resultado),keyby=Produto]
+                       as.numeric(Resultado),keyby=.(Produto,Contratada)]
 t10rec.dt[Produto %in% c("OLEO DIESEL B S500 COMUM","OLEO DIESEL B S500 ADITIVADO"),
           Produto:="DIESEL B S500"]
 t10rec.dt[Produto %in% c("OLEO DIESEL B S10 COMUM","OLEO DIESEL B S10 ADITIVADO"),
@@ -487,14 +459,16 @@ for(i in prods) {
              breaks=seq(floor(min(t10rec.dt[,V1])),
                         ceiling(max(t10rec.dt[,V1])),length.out=200))
 }
+# boxplot(V1~Contratada,data=t10rec.dt,las=2)
 par(op)
+bwplot(V1~Contratada|Produto,data=t10rec.dt,main="T10Rec")
 ```
 
-**Cinco menores valores de T10rec:**
+**Cinco maiores valores de T10rec:**
 
 ```{r T10rec.2,echo=FALSE,cache=TRUE,warning=FALSE}
 pmqc.un.dt[Componente=="Destilacao - 10% Recuperados",
-           ][order(as.numeric(Resultado)),.(Id.text,Resultado,Produto)
+           ][order(-as.numeric(Resultado)),.(Id.text,Resultado,Produto)
              ][1:5,]
 ```
 
@@ -504,7 +478,7 @@ pmqc.un.dt[Componente=="Destilacao - 10% Recuperados",
 ##################################################
 
 t50rec.dt <- pmqc.un.dt[Componente=="Destilacao - 50% Recuperados",
-                       as.numeric(Resultado),keyby=Produto]
+                       as.numeric(Resultado),keyby=.(Produto,Contratada)]
 t50rec.dt[Produto %in% c("OLEO DIESEL B S500 COMUM","OLEO DIESEL B S500 ADITIVADO"),
           Produto:="DIESEL B S500"]
 t50rec.dt[Produto %in% c("OLEO DIESEL B S10 COMUM","OLEO DIESEL B S10 ADITIVADO"),
@@ -524,23 +498,9 @@ for(i in prods) {
              breaks=seq(floor(min(t50rec.dt[,V1])),
                         ceiling(max(t50rec.dt[,V1])),length.out=40))
 }
+# boxplot(V1~Contratada,data=t50rec.dt,las=2)
 par(op)
-```
-
-**Cinco menores valores de T50rec:**
-
-```{r T50rec.2,echo=FALSE,cache=TRUE,warning=FALSE}
-pmqc.un.dt[Componente=="Destilacao - 50% Recuperados",
-           ][order(as.numeric(Resultado)),.(Id.text,Resultado,Produto)
-             ][1:5,]
-```
-
-**Cinco maiores valores de T50rec:**
-
-```{r T50rec.3,echo=FALSE,cache=TRUE,warning=FALSE}
-pmqc.un.dt[Componente=="Destilacao - 50% Recuperados",
-           ][order(-as.numeric(Resultado)),.(Id.text,Resultado,Produto)
-             ][1:5,]
+bwplot(V1~Contratada|Produto,data=t50rec.dt,main="T50Rec")
 ```
 
 ## Destilação: 85% Recuperados
@@ -549,7 +509,8 @@ pmqc.un.dt[Componente=="Destilacao - 50% Recuperados",
 ##################################################
 
 t85rec.dt <- pmqc.un.dt[Componente=="Destilacao - 85% Recuperados",
-                       as.numeric(Resultado),keyby=Produto]
+                       .(as.numeric(Resultado),Id.text),
+                       keyby=.(Produto,Contratada)]
 t85rec.dt[Produto %in% c("OLEO DIESEL B S500 COMUM","OLEO DIESEL B S500 ADITIVADO"),
           Produto:="DIESEL B S500"]
 t85rec.dt[Produto %in% c("OLEO DIESEL B S10 COMUM","OLEO DIESEL B S10 ADITIVADO"),
@@ -558,34 +519,35 @@ t85rec.dt[Produto %in% c("OLEO DIESEL B S10 COMUM","OLEO DIESEL B S10 ADITIVADO"
 # sum(is.na(t85rec.dt))
 aggregate(t85rec.dt$V1,by=list(t85rec.dt$Produto),FUN=summary)
 
+# Custom: ignore outlier
+t85rec.dt.1 <- t85rec.dt[V1!=max(t85rec.dt[,V1])]
+
 # op <- par(mfcol=c(2,2))
 # op <- par(mfrow=c(2,2),oma=c(0,0,2,0),mar=c(5,2,1,1),cex.main=.9)
 op <- par(mfrow=c(2,2),oma=c(0,0,2,0),mar=c(5,4,1,1),cex.main=.9)
 prods <- t85rec.dt[,unique(Produto)]
 for(i in prods) {
-        hist(t85rec.dt[Produto==i,V1],main=i,
+        hist(t85rec.dt.1[Produto==i,V1],main=i,
              xlab=expression(paste("T85rec, ",degree,"C")),
              xlim=c(311,360),
-             breaks=seq(floor(min(t85rec.dt[,V1])),
-                        ceiling(max(t85rec.dt[,V1])),length.out=150))
+             breaks=seq(floor(min(t85rec.dt.1[,V1])),
+                        ceiling(max(t85rec.dt.1[,V1])),length.out=150))
 }
+# boxplot(V1~Contratada,data=t85rec.dt,las=2)
 par(op)
+bwplot(V1~Contratada|Produto,data=t85rec.dt.1,main="T85Rec")
 ```
 
 **Cinco menores valores de T85rec:**
 
 ```{r T85rec.2,echo=FALSE,cache=TRUE,warning=FALSE}
-pmqc.un.dt[Componente=="Destilacao - 85% Recuperados",
-           ][order(as.numeric(Resultado)),.(Id.text,Resultado,Produto)
-             ][1:5,]
+t85rec.dt[order(V1)][1:5]
 ```
 
 **Cinco maiores valores de T85rec:**
 
 ```{r T85rec.3,echo=FALSE,cache=TRUE,warning=FALSE}
-pmqc.un.dt[Componente=="Destilacao - 85% Recuperados",
-           ][order(-as.numeric(Resultado)),.(Id.text,Resultado,Produto)
-             ][1:5,]
+t85rec.dt[order(-V1)][1:5]
 ```
 
 
@@ -595,7 +557,7 @@ pmqc.un.dt[Componente=="Destilacao - 85% Recuperados",
 ##################################################
 
 t90rec.dt <- pmqc.un.dt[Componente=="Destilacao - 90% Recuperados",
-                       as.numeric(Resultado),keyby=Produto]
+                       as.numeric(Resultado),keyby=.(Produto,Contratada)]
 t90rec.dt[Produto %in% c("OLEO DIESEL B S500 COMUM","OLEO DIESEL B S500 ADITIVADO"),
           Produto:="DIESEL B S500"]
 t90rec.dt[Produto %in% c("OLEO DIESEL B S10 COMUM","OLEO DIESEL B S10 ADITIVADO"),
@@ -615,22 +577,28 @@ for(i in prods) {
              breaks=seq(floor(min(t90rec.dt[,V1])),
                         ceiling(max(t90rec.dt[,V1])),length.out=40))
 }
+# boxplot(V1~Contratada,data=t90rec.dt)
 par(op)
+bwplot(V1~Contratada|Produto,data=t90rec.dt,main="T90Rec")
 ```
 
-**Cinco menores valores de T90rec:**
+**Cinco menores valores de T90rec ODBS500:**
 
 ```{r T90rec.2,echo=FALSE,cache=TRUE,warning=FALSE}
-pmqc.un.dt[Componente=="Destilacao - 90% Recuperados",
+pmqc.un.dt[Componente=="Destilacao - 90% Recuperados" & 
+                   Produto %in% c("OLEO DIESEL B S500 COMUM",
+                                  "OLEO DIESEL B S500 ADITIVADO"),
            ][order(as.numeric(Resultado)),.(Id.text,Resultado,Produto)
              ][1:5,]
 ```
 
-**Cinco maiores valores de T90rec:**
+**Cinco menores valores de T90rec ODBS10:**
 
 ```{r T90rec.3,echo=FALSE,cache=TRUE,warning=FALSE}
-pmqc.un.dt[Componente=="Destilacao - 90% Recuperados",
-           ][order(-as.numeric(Resultado)),.(Id.text,Resultado,Produto)
+pmqc.un.dt[Componente=="Destilacao - 90% Recuperados" &
+                   Produto %in% c("OLEO DIESEL B S10 COMUM",
+                                  "OLEO DIESEL B S10 ADITIVADO"),
+           ][order(as.numeric(Resultado)),.(Id.text,Resultado,Produto)
              ][1:5,]
 ```
 
@@ -640,7 +608,7 @@ pmqc.un.dt[Componente=="Destilacao - 90% Recuperados",
 ##################################################
 
 t95rec.dt <- pmqc.un.dt[Componente=="Destilacao - 95% Recuperados",
-                       as.numeric(Resultado),keyby=Produto]
+                       as.numeric(Resultado),keyby=.(Produto,Contratada)]
 t95rec.dt[Produto %in% c("OLEO DIESEL B S500 COMUM","OLEO DIESEL B S500 ADITIVADO"),
           Produto:="DIESEL B S500"]
 t95rec.dt[Produto %in% c("OLEO DIESEL B S10 COMUM","OLEO DIESEL B S10 ADITIVADO"),
@@ -661,17 +629,51 @@ for(i in prods) {
                         ceiling(max(t95rec.dt[,V1])),length.out=40))
 }
 par(op)
+bwplot(V1~Contratada|Produto,data=t95rec.dt,main="T95rec")
 ```
 
 **Cinco maiores valores de T95rec para diesel S10:**
 
 ```{r T95rec.2,echo=FALSE,cache=TRUE,warning=FALSE}
-pmqc.un.dt[(Componente=="Destilacao - 95% Recuperados" & 
-                   (Produto=="OLEO DIESEL B S10 COMUM" | 
-                            Produto=="OLEO DIESEL B S10 ADITIVADO")),
+pmqc.un.dt[Componente=="Destilacao - 95% Recuperados" & 
+                    Produto %in% c("OLEO DIESEL B S10 COMUM",
+                                  "OLEO DIESEL B S10 ADITIVADO"),
            ][order(-as.numeric(Resultado)),.(Id.text,Resultado,Produto)
              ][1:5,]
 ```
+
+## Teor de Água e Sedimentos
+
+```{r TAgSed,echo=FALSE,cache=TRUE,warning=FALSE}
+##################################################
+
+TAgSed.dt <- pmqc.un.dt[Componente=="Teor de Agua e Sedimentos",
+                       Resultado,keyby=.(Produto,Contratada)]
+TAgSed.dt[Produto %in% c("OLEO DIESEL B S500 COMUM","OLEO DIESEL B S500 ADITIVADO"),
+          Produto:="DIESEL B S500"]
+TAgSed.dt[Produto %in% c("OLEO DIESEL B S10 COMUM","OLEO DIESEL B S10 ADITIVADO"),
+          Produto:="DIESEL B S10"]
+
+# sum(is.na(TAgSed.dt))
+(tagsed.table <- table(TAgSed.dt[,.(Produto,Resultado)]))
+```
+
+## Teor de Água
+
+```{r TAg,echo=FALSE,cache=TRUE,warning=FALSE}
+##################################################
+
+TAg.dt <- pmqc.un.dt[Componente=="Teor de Agua",
+                       as.numeric(Resultado),keyby=.(Produto,Contratada)]
+TAg.dt[Produto %in% c("OLEO DIESEL B S500 COMUM","OLEO DIESEL B S500 ADITIVADO"),
+          Produto:="DIESEL B S500"]
+TAg.dt[Produto %in% c("OLEO DIESEL B S10 COMUM","OLEO DIESEL B S10 ADITIVADO"),
+          Produto:="DIESEL B S10"]
+
+# sum(is.na(TAg.dt))
+aggregate(TAg.dt$V1,by=list(TAg.dt$Produto),FUN=summary)
+```
+
 
 ## Condutividade Elétrica
 
@@ -679,7 +681,7 @@ pmqc.un.dt[(Componente=="Destilacao - 95% Recuperados" &
 ##################################################
 
 ce.dt <- pmqc.un.dt[Componente=="Condutividade Eletrica",as.numeric(Resultado),
-                     keyby=Grupo.produto]
+                     keyby=.(Grupo.produto,Contratada)]
 # sum(is.na(ce.dt))
 aggregate(ce.dt$V1,by=list(ce.dt$Grupo.produto),FUN=summary)
 
@@ -694,12 +696,13 @@ for(i in prods) {
                         ceiling(max(ce.dt[,V1])),length.out=80))
 }
 par(op)
+bwplot(V1~Contratada|Grupo.produto,data=ce.dt,main="Condutividade Eletrica")
 ```
 
-**Cinco maiores valores de condutividade elétrica:**
+**Cinco dez valores de condutividade elétrica:**
 
 ```{r cond.2,echo=FALSE,cache=TRUE,warning=FALSE}
-pmqc.un.dt[Componente=="Condutividade Eletrica",][order(-as.numeric(Resultado)),.(Contratada,Id.text,Resultado)][1:5,]
+pmqc.un.dt[Componente=="Condutividade Eletrica",][order(-as.numeric(Resultado)),.(Contratada,Id.text,Resultado)][1:10,]
 ```
 
 ## Massa Específica a 20°C.
@@ -707,8 +710,8 @@ pmqc.un.dt[Componente=="Condutividade Eletrica",][order(-as.numeric(Resultado)),
 ```{r ME20C,echo=FALSE,cache=TRUE,warning=FALSE}
 ##################################################
 
-me.dt <- pmqc.un.dt[Ensaio.=="ME20C",as.numeric(Resultado),
-                    keyby=Produto]
+me.dt <- pmqc.un.dt[Ensaio.=="ME20C",.(as.numeric(Resultado),Id.text),
+                    keyby=.(Produto,Contratada)]
 me.dt[Produto %in% c("GASOLINA C ADITIVADA","GASOLINA C COMUM"),
       Produto:="GCC-GCA"]
 me.dt[Produto=="GASOLINA C PREMIUM",
@@ -723,50 +726,58 @@ me.dt[Produto %in% c("OLEO DIESEL B S10 COMUM","OLEO DIESEL B S10 ADITIVADO"),
 # sum(is.na(me.dt))
 aggregate(me.dt$V1,by=list(me.dt$Produto),FUN=summary)
 
+# Custom: eliminate outliers
+me.dt.1 <- me.dt[!(V1 %in% c(min(V1),max(V1)))]
+
 op <- par(mfrow=c(3,3),oma=c(0,0,2,0),mar=c(5,4,1,1),cex.main=.75)
 prods.g <- c("GCC-GCA","GCP")
 for(i in prods.g) {
-        hist(me.dt[Produto==i,V1],main=i,
+        hist(me.dt.1[Produto==i,V1],main=i,
              xlim=c(720,750),
              xlab=expression(paste("Massa Especifica, ",kg/m^3)),
-             breaks=seq(floor(min(me.dt[,V1])),
-                        ceiling(max(me.dt[,V1])),by=1))
+             breaks=seq(floor(min(me.dt.1[,V1])),
+                        ceiling(max(me.dt.1[,V1])),by=1))
 }
 prods.d <- c("DIESEL B S500","DIESEL B S10")
 for(i in prods.d) {
-        hist(me.dt[Produto==i,V1],main=i,
+        hist(me.dt.1[Produto==i,V1],main=i,
              xlim=c(830,865),
              xlab=expression(paste("Massa Especifica, ",kg/m^3)),
-             breaks=seq(floor(min(me.dt[,V1])),ceiling(max(me.dt[,V1])),by=1))
+             breaks=seq(floor(min(me.dt.1[,V1])),ceiling(max(me.dt.1[,V1])),by=1))
 }
-hist(me.dt[Produto=="ETANOL",V1],main="ETANOL",
+hist(me.dt.1[Produto=="ETANOL",V1],main="ETANOL",
              xlim=c(808.5,811.5),
              xlab=expression(paste("Massa Especifica, ",kg/m^3)),
-             breaks=seq(floor(min(me.dt[,V1])),ceiling(max(me.dt[,V1])),by=.2))
+             breaks=seq(floor(min(me.dt.1[,V1])),ceiling(max(me.dt.1[,V1])),by=.2))
 
 par(op)
+bwplot(V1~Contratada|Produto,data=me.dt.1[Produto=="ETANOL"],
+       main="Massa Especifica 20C")
+bwplot(V1~Contratada|Produto,data=me.dt.1[Produto %in% c("GCC-GCA","GCP")],
+       main="Massa Especifica 20C")
+bwplot(V1~Contratada|Produto,data=me.dt.1[Produto %in% c("DIESEL B S10",
+                                                       "DIESEL B S500")],
+       main="Massa Especifica 20C")
 ```
 
-**Dez maiores valores de ME20C para GCC-GCA:**
+**Cinco maiores valores de ME20C para GCC-GCA:**
 
 ```{r ME20C.gcp,echo=FALSE,cache=TRUE,warning=FALSE}
-pmqc.un.dt[Ensaio. == "ME20C" &
-                   Produto %in% c("GASOLINA C ADITIVADA","GASOLINA C COMUM"),][order(-as.numeric(Resultado)),.(Contratada,Id.text,Resultado)][1:10,]
+me.dt[Produto=="GCC-GCA"][order(-V1)][1:5]
 ```
 
-**Dez menores valores de ME20C para Etanol:**
+**Cinco menores valores de ME20C para ODBS10:**
 
 ```{r ME20C.eth,echo=FALSE,cache=TRUE,warning=FALSE}
-pmqc.un.dt[Ensaio. == "ME20C" &
-                   Grupo.produto == "Etanol",][order(as.numeric(Resultado)),.(Contratada,Id.text,Resultado)][1:10,]
+me.dt[Produto=="DIESEL B S10"][order(V1)][1:5]
 ```
 
 ## Teor Alcoólico
 
 ```{r TAlc,echo=FALSE,cache=TRUE,warning=FALSE}
 ##################################################
-TAlc.dt <- pmqc.un.dt[Ensaio.=="TAlc",as.numeric(Resultado),
-                      keyby=Grupo.produto]
+TAlc.dt <- pmqc.un.dt[Ensaio.=="TAlc",.(as.numeric(Resultado),Id.text),
+                      keyby=.(Grupo.produto,Contratada)]
 # sum(is.na(TAlc.dt))
 aggregate(TAlc.dt$V1,by=list(TAlc.dt$Grupo.produto),FUN=summary)
 
@@ -779,12 +790,13 @@ for(i in prods) {
              breaks=seq(floor(min(TAlc.dt[,V1])),ceiling(max(TAlc.dt[,V1])),by=.1))
 }
 par(op)
+bwplot(V1~Contratada,data=TAlc.dt,main="Teor Alcoolico")
 ```
 
-**Dez menores valores de teor alcoólico:**
+**Cinco menores valores de teor alcoólico:**
 
 ```{r TAlc.2,echo=FALSE,cache=TRUE,warning=FALSE}
-pmqc.un.dt[Ensaio.=="TAlc",][order(as.numeric(Resultado)),.(Contratada,Id.text,Resultado)][1:10,]
+TAlc.dt[order(V1)][1:5]
 ```
 
 
@@ -792,8 +804,8 @@ pmqc.un.dt[Ensaio.=="TAlc",][order(as.numeric(Resultado)),.(Contratada,Id.text,R
 
 ```{r TEth,echo=FALSE,cache=TRUE,warning=FALSE}
 ##################################################
-teth.dt <- pmqc.un.dt[Ensaio.=="TEth",as.numeric(Resultado),
-                    keyby=Produto]
+teth.dt <- pmqc.un.dt[Ensaio.=="TEth",.(as.numeric(Resultado),Id.text),
+                    keyby=.(Produto,Contratada)]
 teth.dt[Produto %in% c("GASOLINA C ADITIVADA","GASOLINA C COMUM"),
       Produto:="GCC-GCA"]
 teth.dt[Produto=="GASOLINA C PREMIUM",
@@ -810,20 +822,19 @@ for(i in prods) {
              breaks=seq(floor(min(teth.dt[,V1])),ceiling(max(teth.dt[,V1])),by=1))
 }
 par(op)
+bwplot(V1~Contratada|Produto,data=teth.dt,main="Teor de Etanol")
 ```
 
 **Cinco menores valores de teor de etanol:**
 
 ```{r TEth.2,echo=FALSE,cache=TRUE,warning=FALSE}
-pmqc.un.dt[Ensaio.=="TEth",][order(as.numeric(Resultado)),
-                             .(Contratada,Id.text,Resultado)][1:5,]
+teth.dt[order(V1)][1:5]
 ```
 
-**Quinze maiores valores de teor de etanol:**
+**Dez maiores valores de teor de etanol:**
 
 ```{r TEth.3,echo=FALSE,cache=TRUE,warning=FALSE}
-pmqc.un.dt[Ensaio.=="TEth",][order(-as.numeric(Resultado)),
-                             .(Contratada,Id.text,Resultado)][1:15,]
+teth.dt[order(-V1)][1:10]
 ```
 
 ## pH
@@ -832,35 +843,28 @@ pmqc.un.dt[Ensaio.=="TEth",][order(-as.numeric(Resultado)),
 ##################################################
 
 ph.dt <- pmqc.un.dt[Ensaio.=="pH",
-                    .(Contratada,Id.text,Resultado),
-                    keyby=Grupo.produto]
-ph.dt[,Resultado:=as.numeric(Resultado)]
+                    .(as.numeric(Resultado),Id.text),
+                    keyby=.(Grupo.produto,Contratada)]
+
 # sum(is.na(ph.dt))
-aggregate(ph.dt$Resultado,by=list(ph.dt$Grupo.produto),FUN=summary)
+aggregate(ph.dt$V1,by=list(ph.dt$Grupo.produto),FUN=summary)
 
-# prods <- ph.dt[,unique(Produto)]
-op <- par(mfrow=c(3,2),oma=c(0,0,2,0),mar=c(5,4,1,1),cex.main=.9)
-hist(ph.dt[,Resultado],
-     main="Etanol: pH",xlab="pH",ylab="Frequência")
-# for(i in prods) {
-#         hist(ph.dt[Produto==i,V1],main=paste("pH:",i),
-#              xlab="pH")
-# }
-par(op)
-```
+# Custom: eliminate outlier
+ph.dt.1 <- ph.dt[V1 != max(V1)]
 
-**Cinco menores valores de pH:**
-
-```{r ph.2,echo=FALSE,cache=TRUE,warning=FALSE}
-pmqc.un.dt[Ensaio.=="pH",][order(as.numeric(Resultado)),
-                           .(Contratada,Id.text,Resultado)][1:5,]
+bwplot(V1~Contratada,data=ph.dt.1,main="pH")
 ```
 
 **Cinco maiores valores de pH:**
 
+```{r ph.2,echo=FALSE,cache=TRUE,warning=FALSE}
+ph.dt[order(-V1)][1:5]
+```
+
+**Cinco menores valores de pH:**
+
 ```{r ph.3,echo=FALSE,cache=TRUE,warning=FALSE}
-pmqc.un.dt[Ensaio.=="pH",][order(-as.numeric(Resultado)),
-                           .(Contratada,Id.text,Resultado)][1:5,]
+ph.dt[order(V1)][1:5]
 ```
 
 
